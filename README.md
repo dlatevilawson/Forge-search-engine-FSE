@@ -46,15 +46,30 @@ All engineering work must also improve at least one success metric: **Accuracy**
 
 ---
 
+## Stable vs Versioned
+
+| Kind | What | Change policy |
+|---|---|---|
+| **Stable** | Master Vision (principles only), Founder Brief, Constitution, document hierarchy, naming conventions, repository structure | Rarely change; define identity |
+| **Versioned** | Research Pipeline, Runtime Architecture, Agent Roster, package boundaries, internal APIs | Expected to evolve until MVP-validated |
+
+Do not freeze implementation sequences inside constitutional documents. See [`docs/README.md`](./docs/README.md).
+
+---
+
 ## Governance Documents
 
 Constitutional documents (do not overwrite):
 
-1. [`docs/00-Master-Vision.md`](./docs/00-Master-Vision.md) — root source of truth
+1. [`docs/00-Master-Vision.md`](./docs/00-Master-Vision.md) — root source of truth (principles)
 2. [`docs/01-Founder-Brief.md`](./docs/01-Founder-Brief.md) — mission, problem, promise
 3. [`docs/02-Constitution.md`](./docs/02-Constitution.md) — binding values and constraints
 
-Architecture and standards docs (`03`–`09`) are subordinate to that hierarchy. See [`docs/README.md`](./docs/README.md).
+Architecture and standards docs (`03` onward) are subordinate and mostly **versioned**. See [`docs/README.md`](./docs/README.md).
+
+### Architecture type taxonomy
+
+Every architecture doc declares one of: **Product**, **System**, **Runtime**, or **Infrastructure**. Product pipeline (`04`) and runtime execution (`04a`) are separate artifacts on purpose.
 
 ---
 
@@ -64,11 +79,14 @@ Architecture and standards docs (`03`–`09`) are subordinate to that hierarchy.
 apps/
   web/                 # Primary web client (not bootstrapped yet)
 packages/
-  ai/                  # Model/agent orchestration and prompting
-  core/                # Shared business logic and domain models
-  reporting/           # Research report assembly and formatting
-  search/              # Web and source-discovery logic
+  search/              # Retrieval only (web, YouTube, docs, papers)
+  verification/        # Claim validation only
+  reasoning/           # Consensus, conflict, confidence
+  reporting/           # Report assembly only
+  memory/              # Research/knowledge persistence over time
+  workspace/           # Projects, folders, collaboration, user context
   shared/              # Cross-cutting utilities (no domain knowledge)
+  core/                # Shared domain models and core business logic
   types/               # TypeScript types/interfaces only
 agents/                # Agent definitions and runbooks
 database/              # Schemas and migrations (vendor deferred)
@@ -78,40 +96,40 @@ tests/                 # Cross-cutting / integration tests
 .github/               # GitHub workflows and templates (deferred)
 ```
 
-Package scopes are defined in [`packages/README.md`](./packages/README.md).
-
-**Open architectural question:** where should evidence verification, consensus, and conflict-detection logic live — `packages/ai` or a future `packages/verification`? Flagged in system architecture docs; not decided at scaffolding time.
+Package scopes: [`packages/README.md`](./packages/README.md).  
+Stage → runtime → package mapping: [`docs/04b-Traceability-Matrix.md`](./docs/04b-Traceability-Matrix.md).
 
 ---
 
 ## Development Principles
 
-1. **Traceability** — every structural choice should map to Master Vision → Founder Brief → Constitution.
-2. **Modularity** — clear package boundaries; no blurred responsibilities.
+1. **Traceability** — structural choices map to Master Vision → Founder Brief → Constitution.
+2. **Modularity** — one responsibility per package; no blurred boundaries.
 3. **No overengineering** — build only what the current phase requires.
 4. **No placeholder application code** — scaffolds are documentation and folders until real implementation begins.
-5. **Brand isolation** — keep "FSE" / product naming at top-level surfaces; use purpose-based package names.
-6. **Never silently decide open architecture questions** — record them and resolve deliberately.
+5. **Brand isolation** — keep "FSE" naming at top-level surfaces; use purpose-based package names.
+6. **Never silently decide open architecture questions** — mark **OPEN** and resolve deliberately.
+7. **Do not conflate product pipeline with runtime** — version `04` and `04a` independently.
 
 ---
 
 ## Current Project Status
 
-**Phase 0 — Engineering Foundation**
+**Phase 0 — Engineering Foundation** (architecture reconciliation in progress)
 
 Completed:
 
-- Constitutional document hierarchy established
-- Monorepo folder structure created
-- Package responsibility boundaries documented
-- Architecture document placeholders (`03`–`09`) created
+- Constitutional document hierarchy (principles vs versioned implementation split)
+- Logical pipeline (`04` v0.1) separated from runtime architecture (`04a` v0.1)
+- Nine single-responsibility packages documented
+- Traceability matrix with explicit OPEN items (`04b`)
 
 Not started (intentionally deferred):
 
 - Application frameworks (e.g. Next.js)
 - Database vendors (e.g. Supabase)
 - Package installation / dependency graphs
-- Feature implementation
+- Feature / orchestrator implementation
 
 ---
 
@@ -125,7 +143,8 @@ High-level sequencing (details in [`docs/08-Roadmap.md`](./docs/08-Roadmap.md)):
 3. Full report fidelity and knowledge memory
 4. Project workspaces and continuous knowledge updates
 
-Research pipeline stages and report structure are locked to the Master Vision — see [`docs/04-Research-Pipeline.md`](./docs/04-Research-Pipeline.md).
+Logical pipeline (versioned): [`docs/04-Research-Pipeline.md`](./docs/04-Research-Pipeline.md).  
+Runtime execution (versioned): [`docs/04a-Runtime-Architecture.md`](./docs/04a-Runtime-Architecture.md).
 
 ---
 
@@ -133,7 +152,7 @@ Research pipeline stages and report structure are locked to the Master Vision �
 
 1. Read the governance trio before proposing structural changes.
 2. Prefer small, reviewable changes that strengthen package boundaries.
-3. Document architectural decisions; do not bury them in code.
+3. Update the traceability matrix when changing pipeline stages, runtime modules, or package ownership.
 4. Do not add application frameworks or vendors unless the relevant architecture doc supports the choice.
 5. Ensure changes improve at least one success metric — or do not ship them.
 

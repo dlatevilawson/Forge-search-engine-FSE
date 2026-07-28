@@ -1,6 +1,7 @@
 # Roadmap
 
 **Document:** `08-Roadmap.md`  
+**Document Kind:** Planning (not an Architecture Type)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
 ---

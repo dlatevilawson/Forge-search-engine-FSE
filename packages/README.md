@@ -1,20 +1,23 @@
 # Packages
 
-Purpose-based shared libraries for the monorepo. Package names deliberately avoid brand-scoped prefixes (e.g. no `@fse/*`) so a future product rename stays inexpensive.
+Purpose-based shared libraries. Names avoid brand-scoped prefixes (no `@fse/*`) so a product rename stays cheap.
 
-| Package | Responsibility |
-|---|---|
-| [`core`](./core) | Shared business logic and domain models |
-| [`shared`](./shared) | Cross-cutting utilities with no domain knowledge |
-| [`types`](./types) | TypeScript type/interface definitions only |
-| [`search`](./search) | Web and source-discovery logic |
-| [`ai`](./ai) | Model/agent orchestration and prompting logic |
-| [`reporting`](./reporting) | Research report assembly and formatting |
+**Versioned:** package boundaries are expected to evolve; they are not constitutional.
 
-## Open Question — Verification Boundary
+Each package has exactly one responsibility. Boundaries are mutually exclusive.
 
-Evidence verification, consensus detection, and conflict analysis are core product capabilities (Master Vision pipeline stages 6–8).
+| Package | Owns | Does not own |
+|---|---|---|
+| [`search`](./search) | Retrieval only (web, YouTube, docs, papers) | Search strategy/planning |
+| [`verification`](./verification) | Claim validation only | Consensus / conflict / confidence |
+| [`reasoning`](./reasoning) | Consensus, conflict, confidence | Claim validation; retrieval |
+| [`reporting`](./reporting) | Report assembly only | Memory, workspaces, knowledge graphs |
+| [`memory`](./memory) | Research/knowledge persistence over time | Report formatting; project UX |
+| [`workspace`](./workspace) | Projects, folders, collaboration, user context | Knowledge persistence engine |
+| [`shared`](./shared) | Cross-cutting utilities, no domain knowledge | Domain models / pipeline logic |
+| [`core`](./core) | Shared domain models and core business logic | Retrieval, formatters, generic utils |
+| [`types`](./types) | Types/interfaces only | Any runtime logic |
 
-**Unresolved:** Should that logic live in `packages/ai`, or in a future dedicated package such as `packages/verification`?
+**Removed:** `packages/ai` (catch-all). See OPEN-1 in `docs/04b-Traceability-Matrix.md` for orchestration code home.
 
-Do not resolve silently during scaffolding. Capture the decision in `docs/03-System-Architecture.md` when criteria are clear.
+**Search collision (resolved):** strategy → Task Planner/Orchestrator; execution → `packages/search`.

@@ -1,10 +1,10 @@
 # `packages/reporting`
 
-## Scope
+## Owns
 
-**Research report assembly and formatting**.
+**Report generation and assembly only** — turning pipeline outputs into the structured research report.
 
-Reports must follow the Master Vision structure:
+Canonical section order:
 
 1. Executive Summary
 2. Research Objective
@@ -17,17 +17,18 @@ Reports must follow the Master Vision structure:
 9. Recommended Next Steps
 10. References
 
-Examples of intended ownership:
+## Does not own
 
-- Report document models and assemblers
-- Formatters (e.g. structured JSON, Markdown) without inventing new section orders
-- Presentation-neutral report builders consumed by apps and agents
+- Long-term memory or knowledge graphs (`memory`)
+- Projects, folders, collaboration (`workspace`)
+- Retrieval (`search`)
+- Claim validation (`verification`)
+- Consensus / conflict / confidence computation (`reasoning`) — consumes their outputs only
+- Persistence of stored reports as knowledge (`memory` / Persistence Layer)
 
-## Non-Goals
+## Logical pipeline stage(s)
 
-- No evidence collection (see `packages/search`)
-- No model orchestration (see `packages/ai`)
-- No persistence of reports (database/API layers own storage)
+- Report Generation
 
 ## Status
 

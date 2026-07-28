@@ -1,20 +1,18 @@
 # `packages/types`
 
-## Scope
+## Owns
 
 **TypeScript type and interface definitions only** — no runtime logic.
 
-Examples of intended ownership:
+## Does not own
 
-- Shared domain types (evidence, report sections, session status)
-- Cross-package contracts that must remain logic-free
-- Public type exports consumed by apps and packages
+- Functions, classes, or side effects
+- Validation implementations
+- Domain behavior (belongs in `core` or the owning capability package)
 
-## Non-Goals
+## Logical pipeline stage(s)
 
-- No functions, classes, or side effects
-- No validation implementations (validators may *consume* these types elsewhere)
-- No re-exports of vendor SDK types unless deliberately part of a stable contract
+None (supporting only).
 
 ## Status
 

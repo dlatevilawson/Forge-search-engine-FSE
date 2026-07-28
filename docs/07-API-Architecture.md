@@ -1,6 +1,7 @@
 # API Architecture
 
 **Document:** `07-API-Architecture.md`  
+**Architecture Type:** System Architecture  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
 ---

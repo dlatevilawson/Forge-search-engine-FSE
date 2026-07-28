@@ -1,6 +1,7 @@
 # Database Architecture
 
 **Document:** `06-Database-Architecture.md`  
+**Architecture Type:** Infrastructure Architecture  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
 ---

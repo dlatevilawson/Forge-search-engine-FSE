@@ -1,8 +1,10 @@
 # Master Vision
 
-**Status:** Constitutional — Root Source of Truth  
+**Status:** Constitutional — Root Source of Truth (principles; stable)  
+**Architecture Type:** — (governance, not an architecture diagram)  
 **Authority:** Highest. All other documents, and eventually all code, must be traceable back to this vision.  
-**Identity note:** "Forge Search Engine" / "FSE" is the current working identity, not a confirmed permanent brand.
+**Identity note:** "Forge Search Engine" / "FSE" is the current working identity, not a confirmed permanent brand.  
+**Change policy:** Stable. Do not pin versioned implementation sequences (pipeline stages, runtime modules, agent rosters, package layouts) in this document — those live in versioned architecture docs.
 
 ---
 
@@ -102,40 +104,25 @@ Every improvement must increase one or more of the following. If it does not, it
 
 ---
 
-## Research Pipeline
+## Research Process (Principle)
 
-Every research session follows this sequence:
+Research proceeds through **structured, evidence-based, verifiable stages**. The platform investigates before concluding: it gathers evidence, verifies claims, surfaces consensus and conflict, assesses confidence, and produces transparent reports.
 
-1. **User Question** — capture the research request
-2. **Intent Analysis** — clarify what the user needs to decide or understand
-3. **Research Planning** — define scope, sources, and investigation strategy
-4. **Research Delegation** — assign work to specialized agents
-5. **Evidence Collection** — gather material from web, video, and other sources
-6. **Evidence Verification** — evaluate quality, support, and reliability
-7. **Consensus Analysis** — detect agreement across independent sources
-8. **Conflict Detection** — surface and explain disagreements
-9. **Confidence Assessment** — measure and explain confidence and unknowns
-10. **Report Generation** — assemble a transparent research report
-11. **Knowledge Storage** — persist findings for long-term use
-12. **Future Updates** — refresh knowledge as evidence evolves
+The **specific stage sequence** is deliberately *not* pinned here. Stage names and ordering are product architecture and will evolve until validated by a real MVP.
+
+- Canonical logical pipeline (versioned): [`04-Research-Pipeline.md`](./04-Research-Pipeline.md)
+- How that pipeline executes at runtime (versioned, separate concern): [`04a-Runtime-Architecture.md`](./04a-Runtime-Architecture.md)
+- Stage → runtime → package mapping: [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md)
 
 ---
 
-## Agent System
+## Agent System (Principle)
 
-The platform operates through specialized agents. Each has a clear responsibility and must uphold the Agent Oath (see Constitution).
+The platform operates through **specialized agents** with clear responsibilities. Every agent must uphold the Agent Oath (see Constitution).
 
-| Agent | Responsibility |
-|---|---|
-| Research Orchestrator | Plan, coordinate, and oversee the research session |
-| Web Research Agent | Discover and collect web evidence |
-| YouTube Research Agent | Extract and evaluate video-sourced claims |
-| Documentation Agent | Gather and organize documentation sources |
-| Evidence Verification Agent | Verify claims against sources and assess reliability |
-| Consensus Engine | Detect and summarize agreement across sources |
-| Conflict Analysis Agent | Identify, explain, and preserve conflicting evidence |
-| Report Generation Agent | Assemble structured research reports |
-| Knowledge Management Agent | Store, retrieve, and maintain long-term knowledge |
+The **agent roster** (names, boundaries, and package mappings) is versioned product/runtime architecture — not frozen in this document.
+
+- Canonical agent specifications (versioned): [`05-Agent-Specifications.md`](./05-Agent-Specifications.md)
 
 ---
 
@@ -153,6 +140,8 @@ Every research report follows this structure:
 8. **Important Unknowns**
 9. **Recommended Next Steps**
 10. **References**
+
+Section order is a product transparency contract. Operational assembly details live with reporting architecture (`packages/reporting` and [`04-Research-Pipeline.md`](./04-Research-Pipeline.md)).
 
 ---
 
@@ -187,10 +176,12 @@ Documents are authoritative in this order:
 2. **Founder Brief** (`01-Founder-Brief.md`)
 3. **Constitution** (`02-Constitution.md`)
 
-Subsequent architecture and engineering documents (`03` onward) must align with all three, in that order of authority.
+Subsequent architecture and engineering documents (`03` onward) must align with all three, in that order of authority. Most of those documents are **versioned** (pipeline, runtime, agents, packages, APIs) — they evolve without amending this vision's principles.
 
 ---
 
 ## Naming Guidance
 
-"Forge Search Engine" / "FSE" is a working identity. Prefer purpose-based names for packages and namespaces (`core`, `search`, `reporting`, etc.). Isolate branding to top-level surfaces (README, app metadata) so a future rename remains inexpensive.
+"Forge Search Engine" / "FSE" is a working identity. Prefer purpose-based names for packages and namespaces (`search`, `verification`, `reasoning`, `reporting`, `memory`, `workspace`, `core`, `shared`, `types`). Isolate branding to top-level surfaces (README, app metadata) so a future rename remains inexpensive.
+
+Package boundaries are **versioned** (see `03` / `packages/`); do not treat the current set as constitutional.

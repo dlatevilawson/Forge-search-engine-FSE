@@ -1,21 +1,32 @@
 # `packages/core`
 
-## Scope
+## Owns
 
-Shared **business logic and domain models** for the research platform.
+Shared **domain models and core business logic** independent of UI, transport, and retrieval vendors.
 
-Examples of intended ownership:
+Examples:
 
 - Research session state and lifecycle
-- Project workspace logic
-- Domain rules that are independent of UI, model providers, and transport
+- Intent / clarified-intent domain models (used by Research Orchestrator)
+- Research plan models (used by Task Planner)
+- Domain rules shared across packages
 
-## Non-Goals
+## Does not own
 
-- No UI components
-- No model-provider SDKs or prompt templates (see `packages/ai`)
-- No generic utilities without domain meaning (see `packages/shared`)
-- No type-only exports that belong in `packages/types`
+- Retrieval adapters (`search`)
+- Claim validation (`verification`)
+- Consensus/conflict/confidence algorithms (`reasoning`)
+- Report formatters (`reporting`)
+- Persistence engines (`memory`)
+- Project/folder UX (`workspace`)
+- Generic utilities with no domain meaning (`shared`)
+- Type-only exports (`types`)
+- Task queue / worker dispatch infrastructure (**OPEN-1**)
+
+## Logical pipeline stage(s)
+
+- Intent Analysis (domain models; runtime ownership is Research Orchestrator)
+- Research Planning (plan domain models; runtime ownership is Task Planner)
 
 ## Status
 

@@ -1,23 +1,22 @@
 # `packages/shared`
 
-## Scope
+## Owns
 
 Cross-cutting **utilities with no domain knowledge**.
 
-Examples of intended ownership:
+Examples: formatting helpers, logging adapters, config loading, path/env helpers.
 
-- Formatting helpers
-- Logging adapters
-- Config loading helpers
-- Environment and path utilities
+## Does not own
 
-## Non-Goals
-
-- No research-domain models or session logic (see `packages/core`)
-- No search/source discovery (see `packages/search`)
-- No agent/prompt orchestration (see `packages/ai`)
+- Any research-domain model or pipeline logic
+- Session/intent/plan models (`core`)
+- Retrieval, verification, reasoning, reporting, memory, or workspace logic
 
 If a helper encodes product meaning (evidence, confidence, workspaces), it does not belong here.
+
+## Logical pipeline stage(s)
+
+None (supporting only).
 
 ## Status
 

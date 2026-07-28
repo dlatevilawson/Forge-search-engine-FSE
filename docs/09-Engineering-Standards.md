@@ -1,6 +1,7 @@
 # Engineering Standards
 
 **Document:** `09-Engineering-Standards.md`  
+**Document Kind:** Engineering Standards (not an Architecture Type)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
 ---

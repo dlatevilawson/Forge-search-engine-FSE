@@ -1,20 +1,26 @@
 # `packages/search`
 
-## Scope
+## Owns
 
-**Web and source-discovery logic** used during evidence collection.
+**Retrieval only** — actually fetching information from external sources.
 
-Examples of intended ownership:
+- Web retrieval
+- YouTube retrieval
+- Documentation corpus retrieval
+- Papers / similar source retrieval
+- Normalization of raw results into evidence *candidates*
 
-- Query construction and source candidate discovery
-- Web retrieval adapters (interfaces first; vendors later)
-- Source normalization into platform-agnostic evidence candidates
+## Does not own
 
-## Non-Goals
+- **Search strategy** (what to search, order, priority) — that is Task Planner / Orchestrator runtime, not this package
+- Claim validation (`verification`)
+- Consensus, conflict, or confidence (`reasoning`)
+- Report assembly (`reporting`)
+- Persistence (`memory`) or projects (`workspace`)
 
-- No claim verification, consensus, or conflict analysis (open package boundary — see `packages/README.md`)
-- No report formatting (see `packages/reporting`)
-- No session/workspace domain orchestration (see `packages/core`)
+## Logical pipeline stage(s)
+
+- Evidence Collection
 
 ## Status
 
