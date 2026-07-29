@@ -15,7 +15,7 @@
 - Report assembly (`reporting`)
 - External source retrieval (`search`)
 - Verification or reasoning
-- Pipeline orchestration (see OPEN-1)
+- Pipeline orchestration (`orchestration`)
 
 ## Logical pipeline stage(s)
 

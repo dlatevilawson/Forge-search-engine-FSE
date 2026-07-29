@@ -4,7 +4,7 @@
 
 **Cross-package coordination** — sequencing, delegation, retries/cancellation (when real), and session run loops.
 
-Created because the vertical slice needed a place for Research Delegation and the end-to-end stage sequencer. That is **not** a silent resolution of OPEN-1; founders still decide the lasting home.
+**CLOSED-1:** This package is the lasting home for Research Orchestrator runtime, Task Planner coordination, Task Queue, and Research Delegation.
 
 ## Does not own
 
@@ -22,9 +22,11 @@ Created because the vertical slice needed a place for Research Delegation and th
 
 ## Logical pipeline stage(s)
 
-- Research Delegation (coordination)
+- Intent Analysis (runtime ownership; domain models in `core`)
+- Research Planning (planner/coordination; plan models in `core`)
+- Research Delegation
 - End-to-end run loop spanning all stages (not a product stage itself)
 
 ## Status
 
-Stub vertical slice only — no real queue, workers, or retries yet.
+Stub vertical slice present — no real queue, workers, or retries yet.

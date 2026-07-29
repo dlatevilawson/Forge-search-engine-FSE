@@ -64,7 +64,7 @@ Agent names are unchanged. Multiple agents may map to one package when they shar
 
 | Agent (name unchanged) | Primary package | Notes |
 |---|---|---|
-| Research Orchestrator | `core` (+ **OPEN-1** for orchestration runtime) | Owns Intent Analysis at runtime; coordinates session |
+| Research Orchestrator | `orchestration` (+ `core` for intent domain models) | Owns Intent Analysis at runtime; coordinates session |
 | Web Research Agent | `search` | Retrieval only — web |
 | YouTube Research Agent | `search` | Retrieval only — YouTube |
 | Documentation Agent | `search` | Retrieval only — documentation (and related corpus sources) |

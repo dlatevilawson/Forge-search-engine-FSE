@@ -19,8 +19,8 @@ Each package has exactly one responsibility. Boundaries are mutually exclusive.
 | [`types`](./types) | Types/interfaces only | Any runtime logic |
 | [`orchestration`](./orchestration) | Sequencing / delegation across packages | Pure domain models; capability logic |
 
-**Dependency direction:** see `docs/10-Architectural-Principles.md` (Principle 7 diagram).
+**CLOSED-1:** Orchestration runtime lives in [`orchestration`](./orchestration). Domain models stay in `core`.
 
-**OPEN-1:** `orchestration` exists because the stub slice needed coordination. That is evidence, not a closed decision — see `docs/04b-Traceability-Matrix.md`.
+**OPEN remaining:** see `docs/04b-Traceability-Matrix.md` (OPEN-2, OPEN-3).
 
 **Search collision (resolved):** strategy → plan data / Task Planner path; execution → `packages/search`.

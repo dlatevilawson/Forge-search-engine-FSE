@@ -1,7 +1,7 @@
 # Traceability Matrix
 
 **Document:** `04b-Traceability-Matrix.md`  
-**Version:** `v0.1`  
+**Version:** `v0.2`  
 **Architecture Type:** Product Architecture + Runtime Architecture + System Architecture (cross-cutting)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -22,26 +22,27 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ## Status
 
-**Versioned — v0.1** — Reflects pipeline `04` v0.1, runtime `04a` v0.1, and the nine-package system layout.
+**Versioned — v0.2** — OPEN-1 closed (`packages/orchestration`). OPEN-2 and OPEN-3 remain open.
 
 ## Table of Contents
 
-1. [Matrix (v0.1)](#matrix-v01)
+1. [Matrix (v0.2)](#matrix-v02)
 2. [Supporting packages (not stage owners)](#supporting-packages-not-stage-owners)
-3. [OPEN decisions](#open-decisions)
-4. [Update rules](#update-rules)
+3. [Closed decisions](#closed-decisions)
+4. [OPEN decisions](#open-decisions)
+5. [Update rules](#update-rules)
 
 ---
 
-## Matrix (v0.1)
+## Matrix (v0.2)
 
 Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runtime modules from [`04a-Runtime-Architecture.md`](./04a-Runtime-Architecture.md). Packages from [`03-System-Architecture.md`](./03-System-Architecture.md).
 
 | # | Logical stage | Runtime module(s) | Owning package | Status |
 |---|---|---|---|---|
-| 1 | Intent Analysis | Research Orchestrator *(owns intent analysis)* | `core` *(intent/session domain models)* | Mapped — see OPEN-1 for orchestration *code* home |
-| 2 | Research Planning | Task Planner | `core` *(plan/strategy domain models)* | Mapped — see OPEN-1 |
-| 3 | Research Delegation | Task Queue (+ Research Orchestrator) | **OPEN** | **OPEN-1** — no orchestration/queue package in the nine-package set |
+| 1 | Intent Analysis | Research Orchestrator *(owns intent analysis)* | `orchestration` *(runtime)* + `core` *(intent domain models)* | Mapped |
+| 2 | Research Planning | Task Planner | `orchestration` *(planner/coordination)* + `core` *(plan domain models)* | Mapped |
+| 3 | Research Delegation | Task Queue (+ Research Orchestrator) | `orchestration` | Mapped |
 | 4 | Evidence Collection | Research Workers | `search` | Mapped |
 | 5 | Evidence Verification | Evidence Validator | `verification` | Mapped — see OPEN-2 for boundary with reasoning |
 | 6 | Consensus Analysis | Consensus Module | `reasoning` | Mapped |
@@ -66,21 +67,31 @@ These packages are required by the system but do not own a pipeline stage:
 
 ---
 
+## Closed decisions
+
+### CLOSED-1 (was OPEN-1) — Orchestration / Task Queue package home
+
+**Decision:** Implementation of Research Orchestrator, Task Planner, Task Queue, and Research Delegation lives in **`packages/orchestration`**.
+
+**Split with `core`:**
+
+| Concern | Package |
+|---|---|
+| Intent / plan / session **domain models** and pure transforms | `packages/core` |
+| Sequencing, delegation, retries, cancellation, cross-package coordination | `packages/orchestration` |
+
+**Rejected:**
+
+- B. `agents/` / `apps/` only — fine for a one-off CLI entrypoint, not for reusable orchestration
+- C. Stretching `core` — violates Architectural Principles Principle 8 (core has no coordination / side effects)
+
+**Evidence:** Stub vertical slice could not place the stage sequencer or Research Delegation in `core` without violating Principle 8; `packages/orchestration` was the natural home.
+
+**Closed:** 2026-07-29 (founder directive: CLOSE OPEN-1).
+
+---
+
 ## OPEN decisions
-
-### OPEN-1 — Orchestration / Task Queue package home
-
-**Question:** Where does implementation of Research Orchestrator, Task Planner, and Task Queue live as code?
-
-**Context:** Intent Analysis and Research Planning domain models map cleanly to `packages/core`. Research Delegation (queue, dispatch, worker scheduling) does not cleanly fit any of the nine packages (`search`, `verification`, `reasoning`, `reporting`, `memory`, `workspace`, `shared`, `core`, `types`).
-
-**Options (not chosen):**
-
-- A. Add a future `packages/orchestration` (or similar) — expands the package set
-- B. Keep orchestration as app/agent runtime code under `agents/` / `apps/`, depending on `core` for domain models
-- C. Stretch `core` to include queue/dispatch (risk: `core` becomes a catch-all)
-
-**Founder input required before implementation of delegation/queue code.**
 
 ### OPEN-2 — Verification-adjacent scoring vs reasoning
 
@@ -112,3 +123,4 @@ These packages are required by the system but do not own a pipeline stage:
 2. Never leave a logical stage without a row.
 3. Prefer **OPEN** over a guess.
 4. Do not let `reporting` absorb memory, workspace, or knowledge-graph responsibilities.
+5. Closed decisions stay in this document; do not delete history — move OPEN → Closed with date and rationale.

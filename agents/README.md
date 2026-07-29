@@ -6,7 +6,7 @@ Home for agent definitions, runbooks, and orchestration specs that complement `d
 
 | Agent | Primary package |
 |---|---|
-| Research Orchestrator | `core` (+ OPEN-1 for orchestration runtime) |
+| Research Orchestrator | `orchestration` (+ `core` for intent models) |
 | Web Research Agent | `search` |
 | YouTube Research Agent | `search` |
 | Documentation Agent | `search` |

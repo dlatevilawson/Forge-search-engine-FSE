@@ -23,7 +23,7 @@ export interface VerticalSliceResult {
 
 /**
  * Runs all ten Logical Research Pipeline stages as distinct calls.
- * Stub-only — gathers evidence for OPEN-1/2/3; does not resolve them.
+ * Stub-only. OPEN-2 and OPEN-3 remain open; OPEN-1 closed → this package.
  */
 export function runVerticalSlice(
   query: string = HARDCODED_QUERY,

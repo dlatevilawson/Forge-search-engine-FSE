@@ -67,7 +67,7 @@ packages/
   shared/              # Utilities with no domain knowledge
   core/                # Domain models + pure logic (no I/O, no coordination)
   types/               # Types/interfaces only
-  orchestration/       # Sequencing/delegation (stub slice; OPEN-1 still open)
+  orchestration/       # Sequencing/delegation (CLOSED-1: owns orchestration runtime)
 agents/                # Agent definitions / runbooks (not a package)
 database/              # Schemas/migrations (vendor deferred)
 ```
@@ -91,7 +91,7 @@ Each package has exactly one responsibility. Boundaries are mutually exclusive.
 | `types` | Type/interface definitions only | Runtime logic of any kind |
 | `orchestration` | Sequencing, delegation, retries/cancellation across packages | Pure domain models; capability algorithms |
 
-**Note:** `packages/orchestration` was introduced by the stub vertical slice because coordination cannot live in `core` (see `10-Architectural-Principles.md` Principle 8). That is **evidence for OPEN-1**, not a closed decision — see [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md).
+**Note:** `packages/orchestration` owns Research Orchestrator runtime, Task Planner coordination, Task Queue, and Research Delegation (**CLOSED-1**). Domain models for intent/plan remain in `core` (Principle 8). See [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md).
 
 **Search naming collision (resolved):**
 
@@ -120,11 +120,11 @@ Physical database/vendor choices → Infrastructure Architecture (`06`) — not 
 
 Tracked with full context in [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md):
 
-- **OPEN-1** — Orchestration / Task Queue package home
+- **CLOSED-1** (was OPEN-1) — Orchestration lives in `packages/orchestration`
 - **OPEN-2** — Verification-adjacent scoring vs `reasoning`
 - **OPEN-3** — Workspace-scoped knowledge persistence ownership
 
-Do not silently resolve these during implementation scaffolding.
+Do not silently resolve remaining OPEN items during implementation scaffolding.
 
 ## Evolution Principles
 
