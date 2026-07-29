@@ -158,3 +158,10 @@ Every improvement to Forge Search Engine must increase one or more of the follow
 • Decision Quality
 
 If it does not improve at least one of these, it should not be built.
+
+
+---
+
+## Changelog
+
+- **2026-07-29** — Appended Changelog section to comply with stable-document edit rule introduced in `10-Architectural-Principles.md` (no substantive content change).

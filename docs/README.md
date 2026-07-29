@@ -6,16 +6,17 @@ Governance and architecture documents for the research platform.
 
 Not everything in `docs/` has the same change policy.
 
-### Stable (rarely change; define identity)
+### Stable (change infrequently, never silently)
 
 - Master Vision — **principles only** (`00-Master-Vision.md`)
 - Founder Brief (`01-Founder-Brief.md`)
 - Constitution (`02-Constitution.md`)
+- Architectural Principles (`10-Architectural-Principles.md`) — Governance
 - Document hierarchy and numbering conventions
 - Naming conventions (brand-neutral packages)
 - Repository structure (top-level layout)
 
-Do not overwrite constitutional content. Do not pin implementation sequences inside Master Vision.
+Stable documents are not frozen. Any edit must append a dated one-line **Changelog** entry (see `10-Architectural-Principles.md`). Do not pin implementation sequences inside Master Vision.
 
 ### Versioned (expected to evolve until MVP-validated)
 
@@ -41,6 +42,7 @@ Every architecture document must declare its type in the header:
 | **System Architecture** | Software components and relationships | Package structure (`03`) |
 | **Runtime Architecture** | Execution flow and orchestration | Runtime Execution (`04a`) |
 | **Infrastructure Architecture** | Deployment, storage, networking, operations | Database (`06`) — placeholder |
+| **Governance** | Stable engineering rules binding versioned work | Architectural Principles (`10`) |
 
 Do not merge product and runtime diagrams into one artifact.
 
@@ -69,5 +71,6 @@ Documents are authoritative in this order. Do not overwrite constitutional conte
 | [`07-API-Architecture.md`](./07-API-Architecture.md) | System | Placeholder |
 | [`08-Roadmap.md`](./08-Roadmap.md) | — (planning) | Placeholder |
 | [`09-Engineering-Standards.md`](./09-Engineering-Standards.md) | — (standards) | Placeholder |
+| [`10-Architectural-Principles.md`](./10-Architectural-Principles.md) | Governance | Stable |
 
-Everything below the constitutional trio must remain traceable to Master Vision → Founder Brief → Constitution.
+Everything below the constitutional documents must remain traceable to Master Vision → Founder Brief → Constitution (and, for engineering structure, Architectural Principles).

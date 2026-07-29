@@ -15,9 +15,12 @@ Each package has exactly one responsibility. Boundaries are mutually exclusive.
 | [`memory`](./memory) | Research/knowledge persistence over time | Report formatting; project UX |
 | [`workspace`](./workspace) | Projects, folders, collaboration, user context | Knowledge persistence engine |
 | [`shared`](./shared) | Cross-cutting utilities, no domain knowledge | Domain models / pipeline logic |
-| [`core`](./core) | Shared domain models and core business logic | Retrieval, formatters, generic utils |
+| [`core`](./core) | Shared domain models and pure business logic | Coordination, I/O, queues |
 | [`types`](./types) | Types/interfaces only | Any runtime logic |
+| [`orchestration`](./orchestration) | Sequencing / delegation across packages | Pure domain models; capability logic |
 
-**Removed:** `packages/ai` (catch-all). See OPEN-1 in `docs/04b-Traceability-Matrix.md` for orchestration code home.
+**Dependency direction:** see `docs/10-Architectural-Principles.md` (Principle 7 diagram).
 
-**Search collision (resolved):** strategy → Task Planner/Orchestrator; execution → `packages/search`.
+**OPEN-1:** `orchestration` exists because the stub slice needed coordination. That is evidence, not a closed decision — see `docs/04b-Traceability-Matrix.md`.
+
+**Search collision (resolved):** strategy → plan data / Task Planner path; execution → `packages/search`.

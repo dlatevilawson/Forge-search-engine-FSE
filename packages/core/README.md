@@ -19,9 +19,9 @@ Examples:
 - Report formatters (`reporting`)
 - Persistence engines (`memory`)
 - Project/folder UX (`workspace`)
+- Cross-package sequencing / delegation (`orchestration`)
 - Generic utilities with no domain meaning (`shared`)
 - Type-only exports (`types`)
-- Task queue / worker dispatch infrastructure (**OPEN-1**)
 
 ## Logical pipeline stage(s)
 
@@ -30,4 +30,4 @@ Examples:
 
 ## Status
 
-Scaffold only — no application code yet.
+Includes pure stub transforms used by the vertical slice — no application I/O.

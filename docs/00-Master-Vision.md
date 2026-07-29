@@ -185,3 +185,10 @@ Subsequent architecture and engineering documents (`03` onward) must align with 
 "Forge Search Engine" / "FSE" is a working identity. Prefer purpose-based names for packages and namespaces (`search`, `verification`, `reasoning`, `reporting`, `memory`, `workspace`, `core`, `shared`, `types`). Isolate branding to top-level surfaces (README, app metadata) so a future rename remains inexpensive.
 
 Package boundaries are **versioned** (see `03` / `packages/`); do not treat the current set as constitutional.
+
+
+---
+
+## Changelog
+
+- **2026-07-29** — Appended Changelog section to comply with stable-document edit rule introduced in `10-Architectural-Principles.md` (no substantive content change).

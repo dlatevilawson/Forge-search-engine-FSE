@@ -4,6 +4,8 @@
 
 **TypeScript type and interface definitions only** — no runtime logic.
 
+Includes the Verification → Reasoning handoff contract `EvidenceAttributes` (Principle 6).
+
 ## Does not own
 
 - Functions, classes, or side effects
@@ -16,4 +18,4 @@ None (supporting only).
 
 ## Status
 
-Scaffold only — no application code yet.
+Contracts used by the stub vertical slice; no runtime logic.

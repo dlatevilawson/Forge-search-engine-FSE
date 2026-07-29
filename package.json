@@ -1,0 +1,13 @@
+{
+  "name": "forge-search-engine",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "vertical-slice": "tsx packages/orchestration/src/cli.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

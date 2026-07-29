@@ -50,7 +50,7 @@ All engineering work must also improve at least one success metric: **Accuracy**
 
 | Kind | What | Change policy |
 |---|---|---|
-| **Stable** | Master Vision (principles only), Founder Brief, Constitution, document hierarchy, naming conventions, repository structure | Rarely change; define identity |
+| **Stable** | Master Vision (principles only), Founder Brief, Constitution, Architectural Principles (`10`), document hierarchy, naming conventions, repository structure | Change infrequently; never silently (Changelog required) |
 | **Versioned** | Research Pipeline, Runtime Architecture, Agent Roster, package boundaries, internal APIs | Expected to evolve until MVP-validated |
 
 Do not freeze implementation sequences inside constitutional documents. See [`docs/README.md`](./docs/README.md).
@@ -86,8 +86,9 @@ packages/
   memory/              # Research/knowledge persistence over time
   workspace/           # Projects, folders, collaboration, user context
   shared/              # Cross-cutting utilities (no domain knowledge)
-  core/                # Shared domain models and core business logic
+  core/                # Shared domain models and pure business logic
   types/               # TypeScript types/interfaces only
+  orchestration/       # Sequencing/delegation (stub slice; OPEN-1 evidence)
 agents/                # Agent definitions and runbooks
 database/              # Schemas and migrations (vendor deferred)
 docs/                  # Governance + architecture documentation
@@ -97,7 +98,15 @@ tests/                 # Cross-cutting / integration tests
 ```
 
 Package scopes: [`packages/README.md`](./packages/README.md).  
-Stage → runtime → package mapping: [`docs/04b-Traceability-Matrix.md`](./docs/04b-Traceability-Matrix.md).
+Stage → runtime → package mapping: [`docs/04b-Traceability-Matrix.md`](./docs/04b-Traceability-Matrix.md).  
+Architectural principles (stable): [`docs/10-Architectural-Principles.md`](./docs/10-Architectural-Principles.md).
+
+Stub vertical slice (hardcoded query, all ten stages):
+
+```bash
+pnpm install
+pnpm vertical-slice
+```
 
 ---
 

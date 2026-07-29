@@ -65,8 +65,9 @@ packages/
   memory/              # Research/knowledge persistence over time
   workspace/           # Projects, folders, collaboration, user context
   shared/              # Utilities with no domain knowledge
-  core/                # Shared domain models and core business logic
+  core/                # Domain models + pure logic (no I/O, no coordination)
   types/               # Types/interfaces only
+  orchestration/       # Sequencing/delegation (stub slice; OPEN-1 still open)
 agents/                # Agent definitions / runbooks (not a package)
 database/              # Schemas/migrations (vendor deferred)
 ```
@@ -86,15 +87,16 @@ Each package has exactly one responsibility. Boundaries are mutually exclusive.
 | `memory` | Persistence and retrieval of research/knowledge over time | Report formatting; project/folder UX; claim validation |
 | `workspace` | Projects, folders, saved research, collaboration, user context | Knowledge persistence engine; report assembly; retrieval |
 | `shared` | Cross-cutting utilities with no domain knowledge | Any domain model or pipeline logic |
-| `core` | Shared domain models and core business logic (e.g. session/intent/plan) | Retrieval adapters; report formatters; generic utils |
+| `core` | Domain models and pure business logic (no side effects) | Coordination; I/O; calling other capability packages |
 | `types` | Type/interface definitions only | Runtime logic of any kind |
+| `orchestration` | Sequencing, delegation, retries/cancellation across packages | Pure domain models; capability algorithms |
 
-**Removed:** `packages/ai` as a catch-all. Orchestration prompting may live near agents/runtime; see OPEN-1 in [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md).
+**Note:** `packages/orchestration` was introduced by the stub vertical slice because coordination cannot live in `core` (see `10-Architectural-Principles.md` Principle 8). That is **evidence for OPEN-1**, not a closed decision — see [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md).
 
 **Search naming collision (resolved):**
 
 - **Search execution** → `packages/search` (Research Workers)
-- **Search strategy** → Task Planner / Orchestrator runtime (not this package)
+- **Search strategy** → plan data / Task Planner path (not `packages/search`)
 
 Detailed per-package READMEs live under `packages/*/README.md`. Stage mapping: [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md).
 
