@@ -88,7 +88,7 @@ packages/
   shared/              # Cross-cutting utilities (no domain knowledge)
   core/                # Shared domain models and pure business logic
   types/               # TypeScript types/interfaces only
-  orchestration/       # Sequencing/delegation (CLOSED-1)
+  orchestration/       # Confirmed coordination package (CLOSED-1)
 agents/                # Agent definitions and runbooks
 database/              # Schemas and migrations (vendor deferred)
 docs/                  # Governance + architecture documentation

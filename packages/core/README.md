@@ -2,32 +2,25 @@
 
 ## Owns
 
-Shared **domain models and core business logic** independent of UI, transport, and retrieval vendors.
+Shared **domain models and pure business logic** — no I/O, no cross-package coordination.
 
-Examples:
-
-- Research session state and lifecycle
-- Intent / clarified-intent domain models (used by Research Orchestrator)
-- Research plan models (used by Task Planner)
-- Domain rules shared across packages
+- Intent Analysis transform (`analyzeIntent`)
+- **Research Planner** (`planResearch`) → Research Plan
+- **Execution Planner** (`planExecution`) → Execution Plan
+- Session/domain models independent of UI and vendors
 
 ## Does not own
 
-- Retrieval adapters (`search`)
-- Claim validation (`verification`)
-- Consensus/conflict/confidence algorithms (`reasoning`)
-- Report formatters (`reporting`)
-- Persistence engines (`memory`)
-- Project/folder UX (`workspace`)
-- Cross-package sequencing / delegation (`orchestration`)
-- Generic utilities with no domain meaning (`shared`)
-- Type-only exports (`types`)
+- Dispatch, retries, worker calls (`orchestration`)
+- Retrieval, verification, reasoning, reporting, memory, workspace
+- Generic utilities (`shared`) or type-only exports (`types`)
 
 ## Logical pipeline stage(s)
 
-- Intent Analysis (domain models; runtime ownership is Research Orchestrator)
-- Research Planning (plan domain models; runtime ownership is Task Planner)
+- Intent Analysis (logic)
+- Research Planning (Research Planner)
+- Research Delegation — **Execution Plan only** (dispatch is `orchestration`)
 
 ## Status
 
-Includes pure stub transforms used by the vertical slice — no application I/O.
+Pure stub planners used by the vertical slice.

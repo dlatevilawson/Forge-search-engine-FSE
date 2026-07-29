@@ -1,4 +1,4 @@
-import { analyzeIntent, planResearch } from "@repo/core";
+import { analyzeIntent, planExecution, planResearch } from "@repo/core";
 import { storeKnowledge } from "@repo/memory";
 import {
   analyzeConflict,
@@ -8,8 +8,7 @@ import {
 } from "@repo/reasoning";
 import { generateReport } from "@repo/reporting";
 import { collectEvidence } from "@repo/search";
-import { scoreCredibility, verifyEvidence } from "@repo/verification";
-import { delegateResearch } from "./delegate.ts";
+import { verifyEvidence } from "@repo/verification";
 
 /** Hardcoded research query for the thinnest vertical slice. */
 export const HARDCODED_QUERY =
@@ -22,36 +21,33 @@ export interface VerticalSliceResult {
 }
 
 /**
- * Runs all ten Logical Research Pipeline stages as distinct calls.
- * Stub-only. OPEN-2 and OPEN-3 remain open; OPEN-1 closed → this package.
+ * Research Orchestrator stub — the only planner/orchestrator piece with side effects.
+ * Calls pure planners in core, then dispatches capability packages.
+ * OPEN-2 / OPEN-3 remain open; OPEN-1 closed → this package owns coordination.
  */
 export function runVerticalSlice(
   query: string = HARDCODED_QUERY,
 ): VerticalSliceResult {
   const stages: string[] = [];
 
-  // 1. Intent Analysis (core — pure)
+  // 1. Intent Analysis — pure transform in core; orchestrator invokes it
   const intent = analyzeIntent(query);
   stages.push("1 Intent Analysis");
 
-  // 2. Research Planning (core — pure)
-  const plan = planResearch(intent);
+  // 2. Research Planning — Research Planner (core, pure)
+  const researchPlan = planResearch(intent);
   stages.push("2 Research Planning");
 
-  // 3. Research Delegation (orchestration — coordination)
-  const delegation = delegateResearch(plan);
+  // 3. Research Delegation — Execution Planner (core, pure) then dispatch here
+  const executionPlan = planExecution(researchPlan);
   stages.push("3 Research Delegation");
 
-  // 4. Evidence Collection (search — retrieval only)
-  const candidates = collectEvidence(delegation);
+  // 4. Evidence Collection (search — retrieval only; orchestrator dispatches)
+  const candidates = collectEvidence(executionPlan);
   stages.push("4 Evidence Collection");
 
-  // 5. Evidence Verification — OPEN-2 seam starts here:
-  //    Verification.scoreCredibility (distinct) → EvidenceAttributes contract
-  const credibilityByEvidenceId = Object.fromEntries(
-    candidates.map((candidate) => [candidate.id, scoreCredibility(candidate)]),
-  );
-  const attributes = verifyEvidence(candidates, credibilityByEvidenceId);
+  // 5. Evidence Verification — façade only (OPEN-2 experiment)
+  const attributes = verifyEvidence(candidates);
   stages.push("5 Evidence Verification");
 
   // 6. Consensus Analysis (reasoning)
@@ -62,8 +58,7 @@ export function runVerticalSlice(
   const conflict = analyzeConflict(attributes);
   stages.push("7 Conflict Analysis");
 
-  // OPEN-2 seam continues: Reasoning.weightEvidence consumes EvidenceAttributes
-  // (must not invent a parallel structure; must not call scoreCredibility).
+  // Reasoning weights EvidenceAttributes only — no direct scoreCredibility access
   const weights = weightEvidence(attributes);
 
   // 8. Confidence Assessment (reasoning)

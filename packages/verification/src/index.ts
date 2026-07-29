@@ -1,10 +1,10 @@
 import type { EvidenceAttributes, EvidenceCandidate } from "@repo/types";
 
 /**
- * Stub credibility scoring (Verification side of OPEN-2).
- * Kept as its own function so the boundary with Reasoning.weightEvidence stays visible.
+ * Private credibility scoring — internal to Verification.
+ * Not part of the package public façade (OPEN-2 experiment).
  */
-export function scoreCredibility(candidate: EvidenceCandidate): number {
+function scoreCredibility(candidate: EvidenceCandidate): number {
   // Stub only — not real scoring. Docs sources slightly preferred.
   if (candidate.sourceUrl.includes("/docs/")) return 0.92;
   if (candidate.sourceUrl.includes("/web/")) return 0.85;
@@ -12,21 +12,16 @@ export function scoreCredibility(candidate: EvidenceCandidate): number {
 }
 
 /**
- * Evidence Verification — produces the EvidenceAttributes contract for Reasoning.
- * Credibility must be supplied from scoreCredibility (distinct call) so OPEN-2 stays visible.
+ * Verification façade — single public entry for Evidence Verification.
+ * Internally scores credibility, then validates claims, returns EvidenceAttributes.
+ * Callers (orchestration) must not know scoring is a separate step.
  */
 export function verifyEvidence(
   candidates: EvidenceCandidate[],
-  credibilityByEvidenceId: Record<string, number>,
 ): EvidenceAttributes[] {
   const now = new Date().toISOString();
   return candidates.map((candidate) => {
-    const sourceCredibility = credibilityByEvidenceId[candidate.id];
-    if (sourceCredibility === undefined) {
-      throw new Error(
-        `Missing credibility score for ${candidate.id}; call scoreCredibility first`,
-      );
-    }
+    const sourceCredibility = scoreCredibility(candidate);
     return {
       evidenceId: candidate.id,
       sourceUrl: candidate.sourceUrl,

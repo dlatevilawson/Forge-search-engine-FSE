@@ -9,11 +9,12 @@ import type {
 /**
  * Stub evidence weighting (Reasoning side of OPEN-2).
  * Consumes the EvidenceAttributes contract from Verification — not an ad hoc parallel shape.
+ * Does not call verification internals (credibility scoring is private to the verification façade).
  */
 export function weightEvidence(attributes: EvidenceAttributes[]): EvidenceWeight[] {
   return attributes.map((item) => ({
     evidenceId: item.evidenceId,
-    // Distinct from Verification.scoreCredibility — combines contract fields for reasoning.
+    // Combines EvidenceAttributes contract fields for reasoning (not verification internals).
     weight: Number(
       (
         item.sourceCredibility * 0.6 +

@@ -12,7 +12,7 @@
 
 ## Does not own
 
-- **Search strategy** (what to search, order, priority) — that is Task Planner / Orchestrator runtime, not this package
+- **Search strategy** (what to search, order, priority) — Research Planner (`core`), not this package
 - Claim validation (`verification`)
 - Consensus, conflict, or confidence (`reasoning`)
 - Report assembly (`reporting`)

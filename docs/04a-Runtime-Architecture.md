@@ -1,7 +1,7 @@
 # Runtime Architecture
 
 **Document:** `04a-Runtime-Architecture.md`  
-**Version:** `v0.1`  
+**Version:** `v0.2`  
 **Architecture Type:** Runtime Architecture  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -24,8 +24,9 @@ Engineers implementing orchestration, workers, validators, and persistence adapt
 In scope:
 
 - Runtime modules and their execution order
-- Ownership of Intent Analysis at runtime (explicit decision below)
-- Distinction between search *strategy* (orchestration) and search *execution* (retrieval workers)
+- Placement of Research Planner / Execution Planner / Research Orchestrator
+- Ownership of Intent Analysis at runtime
+- Distinction between search *strategy* (planning) and search *execution* (retrieval workers)
 
 Out of scope:
 
@@ -35,45 +36,67 @@ Out of scope:
 
 ## Status
 
-**Versioned — v0.1** — Working hypothesis pending MVP validation.
+**Versioned — v0.2** — Task Planner retired; Research Planner / Execution Planner / Research Orchestrator split.
 
 ## Table of Contents
 
-1. [Runtime Execution Flow (v0.1)](#runtime-execution-flow-v01)
-2. [Module Responsibilities](#module-responsibilities)
-3. [Intent Analysis Ownership (Decision)](#intent-analysis-ownership-decision)
-4. [Search Strategy vs Search Execution](#search-strategy-vs-search-execution)
-5. [Relationship to Product Pipeline](#relationship-to-product-pipeline)
+1. [Runtime Execution Flow (v0.2)](#runtime-execution-flow-v02)
+2. [Planner / Orchestrator Split](#planner--orchestrator-split)
+3. [Module Responsibilities](#module-responsibilities)
+4. [Intent Analysis Ownership (Decision)](#intent-analysis-ownership-decision)
+5. [Search Strategy vs Search Execution](#search-strategy-vs-search-execution)
+6. [Relationship to Product Pipeline](#relationship-to-product-pipeline)
 
 ---
 
-## Runtime Execution Flow (v0.1)
+## Runtime Execution Flow (v0.2)
 
 ```
-Research Orchestrator
-  → Task Planner
-  → Task Queue
-  → Research Workers
-  → Evidence Validator
-  → Consensus Module
-  → Conflict Module
-  → Confidence Module
-  → Report Builder
-  → Persistence Layer
+[core — pure]
+  Research Planner
+    → Execution Planner
+
+[orchestration — side effects]
+  Research Orchestrator
+    → Task Queue
+    → Research Workers
+    → Evidence Validator
+    → Consensus Module
+    → Conflict Module
+    → Confidence Module
+    → Report Builder
+    → Persistence Layer
 ```
 
-| Runtime module | Role |
-|---|---|
-| Research Orchestrator | Session entrypoint; coordinates the run; **owns Intent Analysis** |
-| Task Planner | Turns clarified intent into an ordered investigation plan (search strategy) |
-| Task Queue | Schedules and dispatches worker tasks |
-| Research Workers | Execute retrieval (web, YouTube, docs, papers) |
-| Evidence Validator | Claim/source validation |
-| Consensus Module | Agreement detection |
-| Conflict Module | Disagreement detection and explanation |
-| Confidence Module | Confidence and unknowns assessment |
-| Report Builder | Assembles the structured report |
-| Persistence Layer | Stores research artifacts and knowledge over time |
+| Runtime module | Layer / package | Role |
+|---|---|---|
+| Research Planner | `core` (pure) | Intent → Research Plan (sources, order, depth) |
+| Execution Planner | `core` (pure) | Research Plan → Execution Plan (task list + retry params) |
+| Research Orchestrator | `orchestration` | Runs an Execution Plan: dispatch, sequence, retries, failures |
+| Task Queue | `orchestration` | Schedules and dispatches worker tasks |
+| Research Workers | `search` | Execute retrieval (web, YouTube, docs, papers) |
+| Evidence Validator | `verification` | Claim/source validation (façade) |
+| Consensus Module | `reasoning` | Agreement detection |
+| Conflict Module | `reasoning` | Disagreement detection and explanation |
+| Confidence Module | `reasoning` | Confidence and unknowns assessment |
+| Report Builder | `reporting` | Assembles the structured report |
+| Persistence Layer | `memory` | Stores research artifacts and knowledge over time |
+
+**Retired name:** "Task Planner" — replaced by Research Planner + Execution Planner + Research Orchestrator. Do not reintroduce it.
+
+---
+
+## Planner / Orchestrator Split
+
+| Component | Pure? | Package | Output |
+|---|---|---|---|
+| Research Planner | Yes | `core` | Research Plan |
+| Execution Planner | Yes | `core` | Execution Plan |
+| Research Orchestrator | **No** (side effects) | `orchestration` | Running session / stage results |
+
+Dividing line: the moment a component **causes execution** rather than **describing what should execute**, it belongs in `orchestration`, not `core`.
+
+If Execution Planner ever needs live worker state to finish planning, **stop** and open a new OPEN item — do not silently slide it into `orchestration`.
 
 ---
 
@@ -83,33 +106,27 @@ Research Orchestrator
 
 ## Intent Analysis Ownership (Decision)
 
-**Decision (v0.1):** Intent Analysis is a **responsibility of the Research Orchestrator**, not Task Planner, and not a separate runtime module.
-
-### Reasoning
-
-1. The Orchestrator is the session entrypoint — the only module that sees the raw user question before planning.
-2. Task Planner's input should be *clarified intent*, not raw ambiguity. That keeps planning deterministic relative to intent.
-3. Adding a standalone Intent module would invent a box absent from the runtime diagram and blur Orchestrator vs Planner.
+**Decision (v0.2):** Intent Analysis **logic** is a pure transform in `packages/core` (`analyzeIntent`). The **Research Orchestrator** invokes it as the session entry step, then calls Research Planner → Execution Planner → dispatch.
 
 ### Flow
 
 ```
 User question
-  → Research Orchestrator (Intent Analysis)
-  → Task Planner (consumes clarified intent; produces search strategy / plan)
-  → Task Queue → …
+  → Research Orchestrator invokes core.analyzeIntent
+  → Research Planner (core) → Research Plan
+  → Execution Planner (core) → Execution Plan
+  → Research Orchestrator runs Execution Plan → Task Queue → …
 ```
-
-If MVP evidence shows intent analysis needs independent scaling or reuse outside orchestration, revisit this decision and version this document — do not silently move it into Task Planner.
 
 ## Search Strategy vs Search Execution
 
 | Concern | Owner | Notes |
 |---|---|---|
-| **Search strategy** — what to search, order, priority | Task Planner (under Orchestrator) | Orchestration / planning — **not** `packages/search` |
-| **Search execution** — actually retrieving information | Research Workers | Retrieval only — **`packages/search`** |
+| **Search strategy** — what to search, order, priority | Research Planner (`core`) | Encoded in Research Plan — **not** `packages/search` |
+| **Dispatch shape** — task list + retry params | Execution Planner (`core`) | Encoded in Execution Plan — still pure |
+| **Search execution** — actually retrieving information | Research Workers via Orchestrator | Retrieval only — **`packages/search`** |
 
-Do not put strategy logic in `packages/search`. Do not put retrieval adapters in the Orchestrator/Planner.
+Do not put strategy logic in `packages/search`. Do not put retrieval adapters in the planners.
 
 ## Relationship to Product Pipeline
 

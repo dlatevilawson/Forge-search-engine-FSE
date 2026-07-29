@@ -1,26 +1,24 @@
 # Packages
 
-Purpose-based shared libraries. Names avoid brand-scoped prefixes (no `@fse/*`) so a product rename stays cheap.
+Purpose-based shared libraries. Names avoid brand-scoped prefixes (no `@fse/*`).
 
-**Versioned:** package boundaries are expected to evolve; they are not constitutional.
-
-Each package has exactly one responsibility. Boundaries are mutually exclusive.
+**Versioned:** package boundaries evolve; they are not constitutional.
 
 | Package | Owns | Does not own |
 |---|---|---|
-| [`search`](./search) | Retrieval only (web, YouTube, docs, papers) | Search strategy/planning |
-| [`verification`](./verification) | Claim validation only | Consensus / conflict / confidence |
+| [`search`](./search) | Retrieval only | Search strategy/planning |
+| [`verification`](./verification) | Claim validation façade | Consensus / conflict / confidence |
 | [`reasoning`](./reasoning) | Consensus, conflict, confidence | Claim validation; retrieval |
 | [`reporting`](./reporting) | Report assembly only | Memory, workspaces, knowledge graphs |
-| [`memory`](./memory) | Research/knowledge persistence over time | Report formatting; project UX |
-| [`workspace`](./workspace) | Projects, folders, collaboration, user context | Knowledge persistence engine |
-| [`shared`](./shared) | Cross-cutting utilities, no domain knowledge | Domain models / pipeline logic |
-| [`core`](./core) | Shared domain models and pure business logic | Coordination, I/O, queues |
-| [`types`](./types) | Types/interfaces only | Any runtime logic |
-| [`orchestration`](./orchestration) | Sequencing / delegation across packages | Pure domain models; capability logic |
+| [`memory`](./memory) | Research/knowledge persistence | Report formatting; project UX |
+| [`workspace`](./workspace) | Projects, folders, collaboration | Knowledge persistence engine |
+| [`shared`](./shared) | Cross-cutting utilities | Domain / pipeline logic |
+| [`core`](./core) | Domain models + Research/Execution Planners (pure) | Dispatch / side effects |
+| [`types`](./types) | Types/interfaces only | Runtime logic |
+| [`orchestration`](./orchestration) | Research Orchestrator + coordination (CLOSED-1) | Capability algorithms |
 
-**CLOSED-1:** Orchestration runtime lives in [`orchestration`](./orchestration). Domain models stay in `core`.
+**CLOSED-1:** Orchestration runtime lives in [`orchestration`](./orchestration). Planners stay in `core`.
 
-**OPEN remaining:** see `docs/04b-Traceability-Matrix.md` (OPEN-2, OPEN-3).
+**OPEN remaining:** OPEN-2, OPEN-3 — see `docs/04b-Traceability-Matrix.md`.
 
-**Search collision (resolved):** strategy → plan data / Task Planner path; execution → `packages/search`.
+**Search collision (resolved):** strategy → Research Planner; execution → `search`.

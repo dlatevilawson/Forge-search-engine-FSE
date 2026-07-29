@@ -1,4 +1,3 @@
-export { delegateResearch } from "./delegate.ts";
 export {
   HARDCODED_QUERY,
   runVerticalSlice,

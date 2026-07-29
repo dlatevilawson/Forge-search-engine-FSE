@@ -1,7 +1,7 @@
 # Traceability Matrix
 
 **Document:** `04b-Traceability-Matrix.md`  
-**Version:** `v0.2`  
+**Version:** `v0.3`  
 **Architecture Type:** Product Architecture + Runtime Architecture + System Architecture (cross-cutting)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -22,11 +22,11 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ## Status
 
-**Versioned — v0.2** — OPEN-1 closed (`packages/orchestration`). OPEN-2 and OPEN-3 remain open.
+**Versioned — v0.3** — OPEN-1 closed; Task Planner retired (Research Planner / Execution Planner / Research Orchestrator). OPEN-2 and OPEN-3 remain open.
 
 ## Table of Contents
 
-1. [Matrix (v0.2)](#matrix-v02)
+1. [Matrix (v0.3)](#matrix-v03)
 2. [Supporting packages (not stage owners)](#supporting-packages-not-stage-owners)
 3. [Closed decisions](#closed-decisions)
 4. [OPEN decisions](#open-decisions)
@@ -34,30 +34,29 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ---
 
-## Matrix (v0.2)
+## Matrix (v0.3)
 
 Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runtime modules from [`04a-Runtime-Architecture.md`](./04a-Runtime-Architecture.md). Packages from [`03-System-Architecture.md`](./03-System-Architecture.md).
 
 | # | Logical stage | Runtime module(s) | Owning package | Status |
 |---|---|---|---|---|
-| 1 | Intent Analysis | Research Orchestrator *(owns intent analysis)* | `orchestration` *(runtime)* + `core` *(intent domain models)* | Mapped |
-| 2 | Research Planning | Task Planner | `orchestration` *(planner/coordination)* + `core` *(plan domain models)* | Mapped |
-| 3 | Research Delegation | Task Queue (+ Research Orchestrator) | `orchestration` | Mapped |
+| 1 | Intent Analysis | Research Orchestrator *invokes* pure `analyzeIntent` | `core` *(logic)* + `orchestration` *(invocation)* | Mapped |
+| 2 | Research Planning | Research Planner | `core` | Mapped |
+| 3 | Research Delegation | Execution Planner → Research Orchestrator (dispatch) | `core` *(Execution Plan)* + `orchestration` *(dispatch)* | Mapped |
 | 4 | Evidence Collection | Research Workers | `search` | Mapped |
-| 5 | Evidence Verification | Evidence Validator | `verification` | Mapped — see OPEN-2 for boundary with reasoning |
+| 5 | Evidence Verification | Evidence Validator | `verification` | Mapped — see OPEN-2 |
 | 6 | Consensus Analysis | Consensus Module | `reasoning` | Mapped |
 | 7 | Conflict Analysis | Conflict Module | `reasoning` | Mapped |
 | 8 | Confidence Assessment | Confidence Module | `reasoning` | Mapped — see OPEN-2 |
 | 9 | Report Generation | Report Builder | `reporting` | Mapped |
-| 10 | Knowledge Storage | Persistence Layer | `memory` | Mapped — see OPEN-3 for workspace-scoped persistence |
+| 10 | Knowledge Storage | Persistence Layer | `memory` | Mapped — see OPEN-3 |
 
-**Unmapped logical stages:** none.
+**Unmapped logical stages:** none.  
+**Retired runtime name:** Task Planner — do not use.
 
 ---
 
 ## Supporting packages (not stage owners)
-
-These packages are required by the system but do not own a pipeline stage:
 
 | Package | Role relative to the pipeline |
 |---|---|
@@ -69,25 +68,42 @@ These packages are required by the system but do not own a pipeline stage:
 
 ## Closed decisions
 
-### CLOSED-1 (was OPEN-1) — Orchestration / Task Queue package home
+### CLOSED-1 (was OPEN-1) — Orchestration package home
 
-**Decision:** Implementation of Research Orchestrator, Task Planner, Task Queue, and Research Delegation lives in **`packages/orchestration`**.
+**Decision:** `packages/orchestration` is confirmed as the home for coordination.
 
-**Split with `core`:**
+**Rationale:**
 
-| Concern | Package |
+- The vertical slice showed coordination cannot live in `core` without violating Principle 8 (core/orchestration boundary).
+- `agents/` remains specs/runbooks only, not runtime code.
+- The slice’s sequencing, dispatching, and coordination needs required a real home, and `orchestration` was it.
+
+**`packages/orchestration` owns:**
+
+- Intent routing (invoking intent analysis and planners)
+- Execution planning **dispatch** (running an Execution Plan — not writing it)
+- Task scheduling
+- Worker coordination
+- Pipeline sequencing
+- Failure recovery
+- Retry policy (as executed behavior)
+
+**`packages/orchestration` does not own:** search, verification, reasoning, reporting, or persistence. It coordinates calls into those packages; it does not implement their logic.
+
+**Pure planners (not orchestration):**
+
+| Component | Package |
 |---|---|
-| Intent / plan / session **domain models** and pure transforms | `packages/core` |
-| Sequencing, delegation, retries, cancellation, cross-package coordination | `packages/orchestration` |
+| Research Planner (Research Plan) | `packages/core` |
+| Execution Planner (Execution Plan) | `packages/core` |
+| Intent Analysis logic | `packages/core` |
 
 **Rejected:**
 
-- B. `agents/` / `apps/` only — fine for a one-off CLI entrypoint, not for reusable orchestration
-- C. Stretching `core` — violates Architectural Principles Principle 8 (core has no coordination / side effects)
+- B. `agents/` / `apps/` as the only home for reusable orchestration
+- C. Stretching `core` to include dispatch / side effects
 
-**Evidence:** Stub vertical slice could not place the stage sequencer or Research Delegation in `core` without violating Principle 8; `packages/orchestration` was the natural home.
-
-**Closed:** 2026-07-29 (founder directive: CLOSE OPEN-1).
+**Closed:** 2026-07-29 (founder directive). Ownership boundary refined 2026-07-29 with planner split.
 
 ---
 
@@ -101,11 +117,13 @@ These packages are required by the system but do not own a pipeline stage:
 
 **Options (not chosen):**
 
-- A. Keep scoring inside `verification`; `reasoning` consumes verification outputs only
+- A. Keep scoring inside `verification`; `reasoning` consumes verification outputs only (`EvidenceAttributes`)
 - B. Place shared scoring primitives in `core`; both packages consume them
 - C. Allow a narrow shared module inside `reasoning` that verification may not import (directional dependency)
 
-**Founder input required before implementing credibility scoring.**
+**Experiment (not a decision):** Verification façade — orchestration calls only `verifyEvidence()`; `scoreCredibility` is private inside verification. Reasoning uses `EvidenceAttributes` only. See latest pass notes; **OPEN-2 stays OPEN**.
+
+**Founder input required before closing.**
 
 ### OPEN-3 — Workspace-scoped knowledge persistence
 

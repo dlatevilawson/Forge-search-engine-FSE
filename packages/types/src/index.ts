@@ -10,20 +10,30 @@ export interface ResearchIntent {
   decisionGoal: string;
 }
 
-/** Investigation plan produced by Research Planning. */
+/**
+ * Investigation plan produced by Research Planner (packages/core).
+ * Describes which sources to consult, in what order, at what depth — not dispatch.
+ */
 export interface ResearchPlan {
   objective: string;
   sourceKinds: Array<"web" | "youtube" | "docs" | "papers">;
   priorityNotes: string;
 }
 
-/** Work assignments produced by Research Delegation. */
-export interface ResearchDelegation {
+/**
+ * Concrete execution plan produced by Execution Planner (packages/core).
+ * Describes what should be dispatched and with what retry parameters — pure data.
+ * Research Orchestrator consumes this and actually runs it.
+ */
+export interface ExecutionPlan {
   tasks: Array<{
     id: string;
     sourceKind: "web" | "youtube" | "docs" | "papers";
     query: string;
+    maxAttempts: number;
   }>;
+  /** Task ids in intended dispatch sequence. */
+  sequence: string[];
 }
 
 /** Raw evidence candidate from retrieval (pre-verification). */
@@ -42,7 +52,7 @@ export interface EvidenceCandidate {
 export interface EvidenceAttributes {
   evidenceId: string;
   sourceUrl: string;
-  /** Stubbed 0–1 credibility from Verification.scoreCredibility */
+  /** 0–1 credibility embedded by Verification façade (internal scoring step). */
   sourceCredibility: number;
   publicationDate: string;
   /** Stubbed 0–1 consistency check from Verification */

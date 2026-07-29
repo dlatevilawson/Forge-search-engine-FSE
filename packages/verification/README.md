@@ -10,7 +10,7 @@
 - Consensus, conflict analysis, or confidence assessment (`reasoning`)
 - Report assembly (`reporting`)
 - Persistence (`memory`) or workspaces (`workspace`)
-- Search strategy / task planning (runtime Orchestrator / Task Planner)
+- Search strategy / planning (Research Planner / Execution Planner in `core`)
 
 ## Logical pipeline stage(s)
 

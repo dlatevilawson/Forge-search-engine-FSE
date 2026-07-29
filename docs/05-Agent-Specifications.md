@@ -58,23 +58,31 @@ Out of scope:
 
 Agents are product-facing roles. Runtime modules in `04a` execute the work those roles describe. Packages in `03` own the reusable logic.
 
+**Planner / Orchestrator split (Task Planner retired):**
+
+| Component | Package | Side effects? |
+|---|---|---|
+| Research Planner | `core` | No — produces Research Plan |
+| Execution Planner | `core` | No — produces Execution Plan |
+| Research Orchestrator | `orchestration` | **Yes** — dispatches workers, sequences stages, retries |
+
 ## Agent → Package Mapping
 
 Agent names are unchanged. Multiple agents may map to one package when they share a responsibility boundary.
 
 | Agent (name unchanged) | Primary package | Notes |
 |---|---|---|
-| Research Orchestrator | `orchestration` (+ `core` for intent domain models) | Owns Intent Analysis at runtime; coordinates session |
+| Research Orchestrator | `orchestration` (+ `core` for intent + planners) | Runs Execution Plans; invokes Research/Execution Planners in `core` |
 | Web Research Agent | `search` | Retrieval only — web |
 | YouTube Research Agent | `search` | Retrieval only — YouTube |
 | Documentation Agent | `search` | Retrieval only — documentation (and related corpus sources) |
-| Evidence Verification Agent | `verification` | Claim validation only |
+| Evidence Verification Agent | `verification` | Claim validation only (façade) |
 | Consensus Engine | `reasoning` | Shares package with Conflict Analysis Agent and confidence work |
 | Conflict Analysis Agent | `reasoning` | Same package; distinct agent responsibility preserved |
 | Report Generation Agent | `reporting` | Report assembly only — not memory/workspace |
 | Knowledge Management Agent | `memory` | Long-term knowledge; workspace scoping via `workspace` (see OPEN-3) |
 
-No agent was renamed. Consensus Engine and Conflict Analysis Agent both map to `packages/reasoning` by design.
+No agent was renamed. Consensus Engine and Conflict Analysis Agent both map to `packages/reasoning` by design. **"Task Planner" is not an agent name and must not appear.**
 
 ## Shared Agent Constraints
 
@@ -82,7 +90,7 @@ No agent was renamed. Consensus Engine and Conflict Analysis Agent both map to `
 
 ## Research Orchestrator
 
-<!-- Empty — to be authored; must include Intent Analysis ownership per 04a -->
+<!-- Empty — to be authored; side-effectful runner in packages/orchestration; invokes core planners -->
 
 ## Web Research Agent
 

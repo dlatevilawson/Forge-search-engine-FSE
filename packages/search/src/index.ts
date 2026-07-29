@@ -1,10 +1,17 @@
-import type { EvidenceCandidate, ResearchDelegation } from "@repo/types";
+import type { EvidenceCandidate, ExecutionPlan } from "@repo/types";
 
 /**
  * Evidence Collection — retrieval stub only (no strategy, no verification).
+ * Consumes Execution Plan task list; does not plan strategy.
  */
-export function collectEvidence(delegation: ResearchDelegation): EvidenceCandidate[] {
-  return delegation.tasks.map((task, index) => ({
+export function collectEvidence(executionPlan: ExecutionPlan): EvidenceCandidate[] {
+  const ordered = executionPlan.sequence.map((id) => {
+    const task = executionPlan.tasks.find((t) => t.id === id);
+    if (!task) throw new Error(`Execution Plan missing task ${id}`);
+    return task;
+  });
+
+  return ordered.map((task, index) => ({
     id: `ev-${index + 1}`,
     sourceUrl: `https://stub.example/${task.sourceKind}/${task.id}`,
     sourceLabel: `Stub ${task.sourceKind} source`,
