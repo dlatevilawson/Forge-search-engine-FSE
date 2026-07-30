@@ -65,8 +65,8 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 
 | Mode | How | Orchestration behavior |
 |---|---|---|
-| **success** | Hardcoded boiling-point query against DuckDuckGo | Collected real hits; adapted to `EvidenceCandidate` for stub verification |
-| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error` | Retried up to `maxAttempts` (3) then returned final transient outcome — **no new powers needed** |
+| **success** | Hardcoded boiling-point query against DuckDuckGo HTML (GET) | Collected real hits; adapted to `EvidenceCandidate` for stub verification |
+| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error`; also observed live HTTP 202 bot interstitial on POST (now treated as transient) | Retried up to `maxAttempts` (3) then returned final transient outcome — **no new powers needed** |
 | **no-results** | `SEARCH_FORCE_FAILURE=no-results` | Single attempt; **not** retried — **no new powers needed** |
 | **hard-error** | `SEARCH_FORCE_FAILURE=hard-error` | Single attempt; **not** retried — **no new powers needed** |
 
