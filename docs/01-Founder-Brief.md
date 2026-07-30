@@ -45,3 +45,10 @@ Every conclusion should be:
 ## Guiding Principle
 
 AI should strengthen human judgment, never replace it.
+
+
+---
+
+## Changelog
+
+- **2026-07-29** — Appended Changelog section to comply with stable-document edit rule introduced in `10-Architectural-Principles.md` (no substantive content change).
