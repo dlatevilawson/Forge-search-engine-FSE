@@ -51,12 +51,18 @@ export interface SearchResult {
 }
 
 /**
- * Typed search outcomes. packages/search surfaces these; packages/orchestration decides retries.
+ * Typed search outcomes. packages/search surfaces these; packages/orchestration decides next steps.
  * Search must not retry internally.
+ *
+ * Four outcomes:
+ * - success
+ * - no-usable-results (legitimate empty hit set — not an exception)
+ * - transient-error (retryable)
+ * - hard-error (not retryable)
  */
 export type SearchOutcome =
   | { status: "success"; query: string; results: SearchResult[] }
-  | { status: "no-results"; query: string; detail?: string }
+  | { status: "no-usable-results"; query: string; detail?: string }
   | {
       status: "transient-error";
       query: string;

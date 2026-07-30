@@ -4,14 +4,18 @@ import { fetchDuckDuckGoHtml, parseDuckDuckGoHtml } from "./duckduckgo.ts";
 export type SearchWebOptions = {
   limit?: number;
   timeoutMs?: number;
-  /** Test hook — forces a typed failure without hitting the network. */
-  forceFailure?: "no-results" | "transient-error" | "hard-error";
+  /** Test hook — forces a typed outcome without hitting the network. */
+  forceFailure?: "no-usable-results" | "transient-error" | "hard-error";
   signal?: AbortSignal;
 };
 
 function forceFailureFromEnv(): SearchWebOptions["forceFailure"] {
   const raw = process.env.SEARCH_FORCE_FAILURE?.trim().toLowerCase();
-  if (raw === "no-results" || raw === "transient-error" || raw === "hard-error") {
+  // Accept legacy alias "no-results" from the previous pass.
+  if (raw === "no-results" || raw === "no-usable-results") {
+    return "no-usable-results";
+  }
+  if (raw === "transient-error" || raw === "hard-error") {
     return raw;
   }
   return undefined;
@@ -21,8 +25,8 @@ function forceFailureFromEnv(): SearchWebOptions["forceFailure"] {
  * Real web-only retrieval.
  * Returns typed SearchOutcome — does not retry. Orchestration owns retry/recovery.
  *
- * Provider: DuckDuckGo HTML (no API key). Optional BRAVE_API_KEY is reserved for a
- * future backend swap; not required for this pass.
+ * Provider: DuckDuckGo HTML scrape (not an official API). Optional BRAVE_API_KEY
+ * reserved for a future backend swap; not required for this path.
  */
 export async function searchWeb(
   query: string,
@@ -42,8 +46,12 @@ export async function searchWeb(
     };
   }
 
-  if (forceFailure === "no-results") {
-    return { status: "no-results", query: trimmed, detail: "Forced no-results (SEARCH_FORCE_FAILURE)" };
+  if (forceFailure === "no-usable-results") {
+    return {
+      status: "no-usable-results",
+      query: trimmed,
+      detail: "Forced no-usable-results (SEARCH_FORCE_FAILURE)",
+    };
   }
   if (forceFailure === "transient-error") {
     return {
@@ -97,12 +105,27 @@ export async function searchWeb(
       };
     }
 
+    // Bot interstitial pages often return 200 with no result blocks.
+    if (!/class="result__a"/i.test(html) && /duckduckgo/i.test(html)) {
+      const looksLikeInterstitial =
+        /anomaly|challenge|captcha|bot|unusual traffic/i.test(html) ||
+        html.length < 20_000;
+      if (looksLikeInterstitial && !/class="results"/i.test(html)) {
+        return {
+          status: "transient-error",
+          query: trimmed,
+          detail: "Upstream HTML lacked result blocks (possible bot interstitial)",
+          retryable: true,
+        };
+      }
+    }
+
     const results: SearchResult[] = parseDuckDuckGoHtml(html, limit);
     if (results.length === 0) {
       return {
-        status: "no-results",
+        status: "no-usable-results",
         query: trimmed,
-        detail: "Parser found zero result blocks",
+        detail: "Parser found zero usable result blocks",
       };
     }
 

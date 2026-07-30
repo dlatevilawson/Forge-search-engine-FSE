@@ -1,15 +1,18 @@
 /**
- * Exercise orchestration retry against forced search failure modes.
+ * Exercise orchestration against forced search outcome types.
  * Does not require network when SEARCH_FORCE_FAILURE is set.
  */
-import { planExecution, planResearch, analyzeIntent } from "@repo/core";
-import { retrieveTaskWithRetry } from "./run-vertical-slice.ts";
-import type { RetrievalAttemptLog } from "./run-vertical-slice.ts";
+import { analyzeIntent, planExecution, planResearch } from "@repo/core";
+import {
+  retrieveTaskWithRetry,
+  runVerticalSlice,
+  type RetrievalAttemptLog,
+} from "./run-vertical-slice.ts";
 
 const mode = process.env.SEARCH_FORCE_FAILURE;
 if (!mode) {
   console.error(
-    "Set SEARCH_FORCE_FAILURE=transient-error|no-results|hard-error",
+    "Set SEARCH_FORCE_FAILURE=no-usable-results|transient-error|hard-error",
   );
   process.exit(1);
 }
@@ -31,6 +34,17 @@ for (const entry of log) {
   );
 }
 console.log(`Final outcome: ${outcome.status}`);
+const isTransient = mode === "transient-error";
 console.log(
-  `Retry policy: transient retried=${mode === "transient-error" && log.length === task.maxAttempts}; no-results/hard-error not retried beyond first decision=${mode !== "transient-error" && log.length === 1}`,
+  `Retry policy: transient retried=${isTransient && log.length === task.maxAttempts}; no-usable-results/hard-error single-shot=${!isTransient && log.length === 1}`,
 );
+
+if (mode === "no-usable-results" || mode === "no-results") {
+  console.log("");
+  console.log("=== Vertical slice under no-usable-results (must not throw) ===");
+  const slice = await runVerticalSlice();
+  console.log(`collectionOutcome=${slice.collectionOutcome}`);
+  console.log(`stages=${slice.stages.length}`);
+  console.log(`searchResults=${slice.searchResults.length}`);
+  console.log("slice completed without throw");
+}

@@ -5,7 +5,8 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "vertical-slice": "tsx packages/orchestration/src/cli.ts",
-    "exercise-search-failures": "tsx packages/orchestration/src/exercise-search-failures.ts"
+    "exercise-search-failures": "tsx packages/orchestration/src/exercise-search-failures.ts",
+    "audit-duckduckgo": "tsx packages/orchestration/src/audit-duckduckgo.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

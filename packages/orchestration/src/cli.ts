@@ -4,6 +4,7 @@ const result = await runVerticalSlice();
 
 console.log("=== Vertical Slice (web retrieval) ===");
 console.log(`Query: ${HARDCODED_QUERY}`);
+console.log(`Collection outcome: ${result.collectionOutcome}`);
 console.log("");
 console.log("Stages executed:");
 for (const stage of result.stages) {

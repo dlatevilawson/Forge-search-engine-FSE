@@ -35,6 +35,12 @@ export interface VerticalSliceResult {
   storedId: string;
   searchResults: SearchResult[];
   retrievalLog: RetrievalAttemptLog[];
+  /**
+   * Aggregate Evidence Collection outcome for the run.
+   * Policy for non-success (retry broader, clarify, fail session) is founder-owned —
+   * this field exists so orchestration can pattern-match without throwing.
+   */
+  collectionOutcome: SearchOutcome["status"];
 }
 
 /**
@@ -56,7 +62,7 @@ export function searchResultsToEvidenceCandidates(
 
 /**
  * Orchestration-owned retry: search surfaces typed outcomes; we decide retries.
- * Retries only `transient-error`. Does not retry no-results or hard-error.
+ * Retries only `transient-error`. Does not retry no-usable-results or hard-error.
  */
 export async function retrieveTaskWithRetry(
   task: ExecutionPlan["tasks"][number],
@@ -76,7 +82,10 @@ export async function retrieveTaskWithRetry(
       detail: "detail" in outcome ? outcome.detail : undefined,
     });
 
-    if (outcome.status === "success" || outcome.status === "no-results") {
+    if (
+      outcome.status === "success" ||
+      outcome.status === "no-usable-results"
+    ) {
       return outcome;
     }
     if (outcome.status === "hard-error") {
@@ -99,6 +108,23 @@ export async function retrieveTaskWithRetry(
   );
 }
 
+function summarizeCollectionOutcome(
+  taskOutcomes: SearchOutcome[],
+  collectedCount: number,
+): SearchOutcome["status"] {
+  if (collectedCount > 0) return "success";
+  if (taskOutcomes.some((o) => o.status === "no-usable-results")) {
+    return "no-usable-results";
+  }
+  if (taskOutcomes.some((o) => o.status === "transient-error")) {
+    return "transient-error";
+  }
+  if (taskOutcomes.some((o) => o.status === "hard-error")) {
+    return "hard-error";
+  }
+  return "no-usable-results";
+}
+
 /**
  * Research Orchestrator — side-effectful run loop.
  * Real web retrieval via packages/search; downstream stages remain stubbed.
@@ -119,28 +145,29 @@ export async function runVerticalSlice(
   stages.push("3 Research Delegation");
 
   const collected: SearchResult[] = [];
+  const taskOutcomes: SearchOutcome[] = [];
   for (const taskId of executionPlan.sequence) {
     const task = executionPlan.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new Error(`Execution Plan missing task ${taskId}`);
     }
     const outcome = await retrieveTaskWithRetry(task, retrievalLog);
+    taskOutcomes.push(outcome);
     if (outcome.status === "success") {
       collected.push(...outcome.results);
     }
+    // no-usable-results / transient-error / hard-error: recorded, not thrown.
+    // Founder policy for next action is deferred.
   }
   stages.push("4 Evidence Collection");
 
-  if (collected.length === 0) {
-    const summary = retrievalLog
-      .map((e) => `${e.taskId}:${e.outcome}${e.detail ? `(${e.detail})` : ""}`)
-      .join("; ");
-    throw new Error(
-      `Evidence Collection produced zero SearchResults. retrievalLog=[${summary}]`,
-    );
-  }
+  const collectionOutcome = summarizeCollectionOutcome(
+    taskOutcomes,
+    collected.length,
+  );
 
-  // Minimal adapter — verification package untouched.
+  // Minimal adapter — verification package untouched. Empty candidates are valid
+  // when collectionOutcome is non-success (placeholder path; not a product policy).
   const candidates = searchResultsToEvidenceCandidates(collected);
   const attributes = verifyEvidence(candidates);
   stages.push("5 Evidence Verification");
@@ -173,5 +200,6 @@ export async function runVerticalSlice(
     storedId: stored.id,
     searchResults: collected,
     retrievalLog,
+    collectionOutcome,
   };
 }

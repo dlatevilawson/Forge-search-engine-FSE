@@ -108,12 +108,18 @@ pnpm install
 pnpm vertical-slice
 ```
 
-Force search failure modes (orchestration retry exercise):
+Force search failure modes (orchestration outcome exercise):
 
 ```bash
+SEARCH_FORCE_FAILURE=no-usable-results pnpm exercise-search-failures
 SEARCH_FORCE_FAILURE=transient-error pnpm exercise-search-failures
-SEARCH_FORCE_FAILURE=no-results pnpm exercise-search-failures
 SEARCH_FORCE_FAILURE=hard-error pnpm exercise-search-failures
+```
+
+DuckDuckGo scrape reliability audit:
+
+```bash
+pnpm audit-duckduckgo
 ```
 
 ---

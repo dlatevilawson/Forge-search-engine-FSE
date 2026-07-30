@@ -19,7 +19,7 @@ Returns typed [`SearchOutcome`](../types/src/index.ts) / `SearchResult[]`. Does 
 
 | Variable | Purpose |
 |---|---|
-| `SEARCH_FORCE_FAILURE` | `no-results` \| `transient-error` \| `hard-error` — force typed outcomes for orchestration tests |
+| `SEARCH_FORCE_FAILURE` | `no-usable-results` \| `transient-error` \| `hard-error` — force typed outcomes for orchestration tests |
 | `BRAVE_API_KEY` | Reserved for optional Brave backend later; **not required** for DuckDuckGo path |
 
 ## Logical pipeline stage(s)
