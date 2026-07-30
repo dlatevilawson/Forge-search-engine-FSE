@@ -1,7 +1,7 @@
 # Traceability Matrix
 
 **Document:** `04b-Traceability-Matrix.md`  
-**Version:** `v0.4`  
+**Version:** `v0.5`  
 **Architecture Type:** Product Architecture + Runtime Architecture + System Architecture (cross-cutting)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -22,7 +22,7 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ## Status
 
-**Versioned — v0.4** — Real web retrieval in `packages/search`; Evidence Collection failure-handling note added. OPEN-2 and OPEN-3 remain open.
+**Versioned — v0.5** — Four search outcomes including `no-usable-results` (no throw); DuckDuckGo scrape audit recorded. OPEN-2 and OPEN-3 remain open.
 
 ## Table of Contents
 
@@ -61,25 +61,40 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 
 **Pass (2026-07-30):** Replaced web stub with real DuckDuckGo HTML retrieval. Contract: `SearchResult` / `SearchOutcome` in `packages/types`. YouTube/docs/papers remain unimplemented (`hard-error`).
 
+**Pass (2026-07-30, follow-up):** Four typed outcomes are now consistent — `success` | `no-usable-results` | `transient-error` | `hard-error`. Empty retrieval is **data**, not a thrown exception. Orchestration pattern-matches via `collectionOutcome`; founder policy for what to do next (broaden query, clarify, fail session, etc.) is deferred.
+
+### Outcome model
+
+| Outcome | Meaning | Retryable? |
+|---|---|---|
+| `success` | Usable `SearchResult[]` returned | — |
+| `no-usable-results` | Query ran; zero usable hits (legitimate) | No |
+| `transient-error` | Timeout, 429/5xx/202 bot interstitial, truncated body | Yes (orchestration) |
+| `hard-error` | Empty query, non-retryable HTTP, unimplemented source kind | No |
+
 ### Failure modes exercised
 
 | Mode | How | Orchestration behavior |
 |---|---|---|
 | **success** | Hardcoded boiling-point query against DuckDuckGo HTML (GET) | Collected real hits; adapted to `EvidenceCandidate` for stub verification |
-| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error`; also observed live HTTP 202 bot interstitial on POST (now treated as transient) | Retried up to `maxAttempts` (3) then returned final transient outcome — **no new powers needed** |
-| **no-results** | `SEARCH_FORCE_FAILURE=no-results` | Single attempt; **not** retried — **no new powers needed** |
+| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error`; live HTTP 202 bot interstitial | Retried up to `maxAttempts` (3) — **no new powers needed** |
+| **no-usable-results** | `SEARCH_FORCE_FAILURE=no-usable-results` | Single attempt; slice completes with `collectionOutcome=no-usable-results`, **does not throw** |
 | **hard-error** | `SEARCH_FORCE_FAILURE=hard-error` | Single attempt; **not** retried — **no new powers needed** |
 
 ### Boundary check (OPEN-1 ownership)
 
 - `packages/search` does **not** retry; it only returns typed outcomes.
-- `packages/orchestration` owns retry (transient only) and whether to abort the slice when zero results remain.
+- `packages/orchestration` owns retry (transient only) and records `collectionOutcome` for non-success paths without inventing product policy.
 
-**Held up:** Existing CLOSED-1 split was sufficient for these modes.
+### DuckDuckGo provider audit (2026-07-30)
 
-**Observation (not absorbed silently):** When *all* tasks end in no-results/hard-error/exhausted transient, the slice currently **throws** in Evidence Collection. That is a blunt “abort session” policy, not a productized recovery path (e.g. degrade, ask user, or widen sources). If founders want structured session-level failure outcomes (not exceptions), that is a **new** orchestration API shape — do not invent it inside `search`.
+**Integration type:** HTML scrape of `html.duckduckgo.com` — **not** an official DuckDuckGo API.
 
-**OPEN-2 / OPEN-3:** untouched this pass.
+**Repeated-query test (15 real queries, ~400ms spacing):** 6 success, 9 HTTP 202 bot/transient (40% success). After the first handful of successes, subsequent requests consistently hit 202 interstitials. Zero hard-errors / zero genuine no-usable-results in this sample.
+
+**Recommendation:** **Do not keep building production retrieval on this scrape.** Swap to a stable search API (Brave / Tavily / Exa / Bing) before more packages depend on retrieval. Swap scope is small: replace the DuckDuckGo fetch/parse behind `searchWeb()` while keeping `SearchResult` / `SearchOutcome` contracts. **No swap performed this pass** — founder decision.
+
+**OPEN-2 / OPEN-3:** untouched; remain OPEN.
 
 ---
 
