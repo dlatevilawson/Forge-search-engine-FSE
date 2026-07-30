@@ -23,8 +23,9 @@ export function analyzeIntent(rawQuery: string): ResearchIntent {
 export function planResearch(intent: ResearchIntent): ResearchPlan {
   return {
     objective: intent.clarifiedQuestion,
-    sourceKinds: ["web", "docs"],
-    priorityNotes: "Prefer primary scientific references; stub strategy only",
+    // Web-only for the first real-retrieval pass; other kinds stay unimplemented.
+    sourceKinds: ["web"],
+    priorityNotes: "Web retrieval only this pass; prefer primary scientific references",
   };
 }
 
@@ -38,7 +39,8 @@ export function planExecution(researchPlan: ResearchPlan): ExecutionPlan {
     id: `task-${index + 1}`,
     sourceKind,
     query: researchPlan.objective,
-    maxAttempts: 1,
+    // Web tasks get retries so orchestration can exercise transient recovery.
+    maxAttempts: sourceKind === "web" ? 3 : 1,
   }));
   return {
     tasks,

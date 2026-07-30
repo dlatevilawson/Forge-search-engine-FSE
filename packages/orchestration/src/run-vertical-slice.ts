@@ -7,65 +7,154 @@ import {
   weightEvidence,
 } from "@repo/reasoning";
 import { generateReport } from "@repo/reporting";
-import { collectEvidence } from "@repo/search";
+import { retrieveForSourceKind } from "@repo/search";
+import type {
+  EvidenceCandidate,
+  ExecutionPlan,
+  SearchOutcome,
+  SearchResult,
+} from "@repo/types";
 import { verifyEvidence } from "@repo/verification";
 
 /** Hardcoded research query for the thinnest vertical slice. */
 export const HARDCODED_QUERY =
   "What is the boiling point of water at sea level?";
 
+export interface RetrievalAttemptLog {
+  taskId: string;
+  sourceKind: string;
+  attempt: number;
+  maxAttempts: number;
+  outcome: SearchOutcome["status"];
+  detail?: string;
+}
+
 export interface VerticalSliceResult {
   stages: string[];
   report: ReturnType<typeof generateReport>;
   storedId: string;
+  searchResults: SearchResult[];
+  retrievalLog: RetrievalAttemptLog[];
 }
 
 /**
- * Research Orchestrator stub — the only planner/orchestrator piece with side effects.
- * Calls pure planners in core, then dispatches capability packages.
- * OPEN-2 / OPEN-3 remain open; OPEN-1 closed → this package owns coordination.
+ * Adapt SearchResult → EvidenceCandidate for the still-stubbed verification façade.
+ * Lives in orchestration so packages/verification stays untouched this pass.
  */
-export function runVerticalSlice(
-  query: string = HARDCODED_QUERY,
-): VerticalSliceResult {
-  const stages: string[] = [];
+export function searchResultsToEvidenceCandidates(
+  results: SearchResult[],
+): EvidenceCandidate[] {
+  return results.map((result) => ({
+    id: result.id,
+    sourceUrl: result.url,
+    sourceLabel: result.title,
+    excerpt: result.snippet,
+    // SearchResult has no publication date — placeholder until a richer contract.
+    claimedPublicationDate: "unknown",
+  }));
+}
 
-  // 1. Intent Analysis — pure transform in core; orchestrator invokes it
+/**
+ * Orchestration-owned retry: search surfaces typed outcomes; we decide retries.
+ * Retries only `transient-error`. Does not retry no-results or hard-error.
+ */
+export async function retrieveTaskWithRetry(
+  task: ExecutionPlan["tasks"][number],
+  log: RetrievalAttemptLog[],
+): Promise<SearchOutcome> {
+  let last: SearchOutcome | undefined;
+
+  for (let attempt = 1; attempt <= task.maxAttempts; attempt++) {
+    const outcome = await retrieveForSourceKind(task.sourceKind, task.query);
+    last = outcome;
+    log.push({
+      taskId: task.id,
+      sourceKind: task.sourceKind,
+      attempt,
+      maxAttempts: task.maxAttempts,
+      outcome: outcome.status,
+      detail: "detail" in outcome ? outcome.detail : undefined,
+    });
+
+    if (outcome.status === "success" || outcome.status === "no-results") {
+      return outcome;
+    }
+    if (outcome.status === "hard-error") {
+      return outcome;
+    }
+    // transient-error — retry if attempts remain
+    if (attempt < task.maxAttempts) {
+      continue;
+    }
+    return outcome;
+  }
+
+  return (
+    last ?? {
+      status: "hard-error",
+      query: task.query,
+      detail: "No retrieval attempts executed",
+      retryable: false,
+    }
+  );
+}
+
+/**
+ * Research Orchestrator — side-effectful run loop.
+ * Real web retrieval via packages/search; downstream stages remain stubbed.
+ */
+export async function runVerticalSlice(
+  query: string = HARDCODED_QUERY,
+): Promise<VerticalSliceResult> {
+  const stages: string[] = [];
+  const retrievalLog: RetrievalAttemptLog[] = [];
+
   const intent = analyzeIntent(query);
   stages.push("1 Intent Analysis");
 
-  // 2. Research Planning — Research Planner (core, pure)
   const researchPlan = planResearch(intent);
   stages.push("2 Research Planning");
 
-  // 3. Research Delegation — Execution Planner (core, pure) then dispatch here
   const executionPlan = planExecution(researchPlan);
   stages.push("3 Research Delegation");
 
-  // 4. Evidence Collection (search — retrieval only; orchestrator dispatches)
-  const candidates = collectEvidence(executionPlan);
+  const collected: SearchResult[] = [];
+  for (const taskId of executionPlan.sequence) {
+    const task = executionPlan.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new Error(`Execution Plan missing task ${taskId}`);
+    }
+    const outcome = await retrieveTaskWithRetry(task, retrievalLog);
+    if (outcome.status === "success") {
+      collected.push(...outcome.results);
+    }
+  }
   stages.push("4 Evidence Collection");
 
-  // 5. Evidence Verification — façade only (OPEN-2 experiment)
+  if (collected.length === 0) {
+    const summary = retrievalLog
+      .map((e) => `${e.taskId}:${e.outcome}${e.detail ? `(${e.detail})` : ""}`)
+      .join("; ");
+    throw new Error(
+      `Evidence Collection produced zero SearchResults. retrievalLog=[${summary}]`,
+    );
+  }
+
+  // Minimal adapter — verification package untouched.
+  const candidates = searchResultsToEvidenceCandidates(collected);
   const attributes = verifyEvidence(candidates);
   stages.push("5 Evidence Verification");
 
-  // 6. Consensus Analysis (reasoning)
   const consensus = analyzeConsensus(attributes);
   stages.push("6 Consensus Analysis");
 
-  // 7. Conflict Analysis (reasoning)
   const conflict = analyzeConflict(attributes);
   stages.push("7 Conflict Analysis");
 
-  // Reasoning weights EvidenceAttributes only — no direct scoreCredibility access
   const weights = weightEvidence(attributes);
-
-  // 8. Confidence Assessment (reasoning)
   const confidence = assessConfidence(attributes, weights, consensus, conflict);
   stages.push("8 Confidence Assessment");
 
-  // 9. Report Generation (reporting)
   const report = generateReport({
     intent,
     evidence: attributes,
@@ -75,9 +164,14 @@ export function runVerticalSlice(
   });
   stages.push("9 Report Generation");
 
-  // 10. Knowledge Storage (memory — in-memory stub; no workspace)
   const stored = storeKnowledge(report);
   stages.push("10 Knowledge Storage");
 
-  return { stages, report, storedId: stored.id };
+  return {
+    stages,
+    report,
+    storedId: stored.id,
+    searchResults: collected,
+    retrievalLog,
+  };
 }

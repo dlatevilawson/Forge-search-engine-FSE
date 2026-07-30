@@ -36,6 +36,42 @@ export interface ExecutionPlan {
   sequence: string[];
 }
 
+/**
+ * Web (and future source) retrieval hit — Search → Orchestration handoff contract.
+ * Verification still consumes EvidenceCandidate; orchestration adapts SearchResult → candidate.
+ */
+export interface SearchResult {
+  id: string;
+  title: string;
+  url: string;
+  snippet: string;
+  /** Which retrieval backend produced this hit. */
+  provider: "duckduckgo" | "brave";
+  retrievedAt: string;
+}
+
+/**
+ * Typed search outcomes. packages/search surfaces these; packages/orchestration decides retries.
+ * Search must not retry internally.
+ */
+export type SearchOutcome =
+  | { status: "success"; query: string; results: SearchResult[] }
+  | { status: "no-results"; query: string; detail?: string }
+  | {
+      status: "transient-error";
+      query: string;
+      detail: string;
+      /** Always true — orchestration may retry. */
+      retryable: true;
+    }
+  | {
+      status: "hard-error";
+      query: string;
+      detail: string;
+      /** Always false — orchestration must not retry as-if transient. */
+      retryable: false;
+    };
+
 /** Raw evidence candidate from retrieval (pre-verification). */
 export interface EvidenceCandidate {
   id: string;

@@ -65,7 +65,7 @@ Documents are authoritative in this order. Do not overwrite constitutional conte
 | [`03-System-Architecture.md`](./03-System-Architecture.md) | System | Versioned `v0.2` |
 | [`04-Research-Pipeline.md`](./04-Research-Pipeline.md) | Product | Versioned `v0.1` |
 | [`04a-Runtime-Architecture.md`](./04a-Runtime-Architecture.md) | Runtime | Versioned `v0.2` |
-| [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md) | Cross-cutting | Versioned `v0.3` (OPEN-1 closed) |
+| [`04b-Traceability-Matrix.md`](./04b-Traceability-Matrix.md) | Cross-cutting | Versioned `v0.4` (web retrieval notes) |
 | [`05-Agent-Specifications.md`](./05-Agent-Specifications.md) | Product | Versioned `v0.1` |
 | [`06-Database-Architecture.md`](./06-Database-Architecture.md) | Infrastructure | Placeholder |
 | [`07-API-Architecture.md`](./07-API-Architecture.md) | System | Placeholder |

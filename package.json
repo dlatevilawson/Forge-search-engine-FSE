@@ -4,7 +4,8 @@
   "type": "module",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "vertical-slice": "tsx packages/orchestration/src/cli.ts"
+    "vertical-slice": "tsx packages/orchestration/src/cli.ts",
+    "exercise-search-failures": "tsx packages/orchestration/src/exercise-search-failures.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

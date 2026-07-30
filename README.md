@@ -101,11 +101,19 @@ Package scopes: [`packages/README.md`](./packages/README.md).
 Stage → runtime → package mapping: [`docs/04b-Traceability-Matrix.md`](./docs/04b-Traceability-Matrix.md).  
 Architectural principles (stable): [`docs/10-Architectural-Principles.md`](./docs/10-Architectural-Principles.md).
 
-Stub vertical slice (hardcoded query, all ten stages):
+Stub vertical slice with **real web retrieval** (downstream still stubbed):
 
 ```bash
 pnpm install
 pnpm vertical-slice
+```
+
+Force search failure modes (orchestration retry exercise):
+
+```bash
+SEARCH_FORCE_FAILURE=transient-error pnpm exercise-search-failures
+SEARCH_FORCE_FAILURE=no-results pnpm exercise-search-failures
+SEARCH_FORCE_FAILURE=hard-error pnpm exercise-search-failures
 ```
 
 ---

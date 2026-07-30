@@ -1,7 +1,7 @@
 # Traceability Matrix
 
 **Document:** `04b-Traceability-Matrix.md`  
-**Version:** `v0.3`  
+**Version:** `v0.4`  
 **Architecture Type:** Product Architecture + Runtime Architecture + System Architecture (cross-cutting)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -22,19 +22,20 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ## Status
 
-**Versioned — v0.3** — OPEN-1 closed; Task Planner retired (Research Planner / Execution Planner / Research Orchestrator). OPEN-2 and OPEN-3 remain open.
+**Versioned — v0.4** — Real web retrieval in `packages/search`; Evidence Collection failure-handling note added. OPEN-2 and OPEN-3 remain open.
 
 ## Table of Contents
 
-1. [Matrix (v0.3)](#matrix-v03)
-2. [Supporting packages (not stage owners)](#supporting-packages-not-stage-owners)
-3. [Closed decisions](#closed-decisions)
-4. [OPEN decisions](#open-decisions)
-5. [Update rules](#update-rules)
+1. [Matrix (v0.4)](#matrix-v04)
+2. [Evidence Collection — real retrieval notes](#evidence-collection--real-retrieval-notes)
+3. [Supporting packages (not stage owners)](#supporting-packages-not-stage-owners)
+4. [Closed decisions](#closed-decisions)
+5. [OPEN decisions](#open-decisions)
+6. [Update rules](#update-rules)
 
 ---
 
-## Matrix (v0.3)
+## Matrix (v0.4)
 
 Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runtime modules from [`04a-Runtime-Architecture.md`](./04a-Runtime-Architecture.md). Packages from [`03-System-Architecture.md`](./03-System-Architecture.md).
 
@@ -43,7 +44,7 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 | 1 | Intent Analysis | Research Orchestrator *invokes* pure `analyzeIntent` | `core` *(logic)* + `orchestration` *(invocation)* | Mapped |
 | 2 | Research Planning | Research Planner | `core` | Mapped |
 | 3 | Research Delegation | Execution Planner → Research Orchestrator (dispatch) | `core` *(Execution Plan)* + `orchestration` *(dispatch)* | Mapped |
-| 4 | Evidence Collection | Research Workers | `search` | Mapped |
+| 4 | Evidence Collection | Research Workers | `search` | Mapped — **web real**; see notes below |
 | 5 | Evidence Verification | Evidence Validator | `verification` | Mapped — see OPEN-2 |
 | 6 | Consensus Analysis | Consensus Module | `reasoning` | Mapped |
 | 7 | Conflict Analysis | Conflict Module | `reasoning` | Mapped |
@@ -53,6 +54,32 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 
 **Unmapped logical stages:** none.  
 **Retired runtime name:** Task Planner — do not use.
+
+---
+
+## Evidence Collection — real retrieval notes
+
+**Pass (2026-07-30):** Replaced web stub with real DuckDuckGo HTML retrieval. Contract: `SearchResult` / `SearchOutcome` in `packages/types`. YouTube/docs/papers remain unimplemented (`hard-error`).
+
+### Failure modes exercised
+
+| Mode | How | Orchestration behavior |
+|---|---|---|
+| **success** | Hardcoded boiling-point query against DuckDuckGo | Collected real hits; adapted to `EvidenceCandidate` for stub verification |
+| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error` | Retried up to `maxAttempts` (3) then returned final transient outcome — **no new powers needed** |
+| **no-results** | `SEARCH_FORCE_FAILURE=no-results` | Single attempt; **not** retried — **no new powers needed** |
+| **hard-error** | `SEARCH_FORCE_FAILURE=hard-error` | Single attempt; **not** retried — **no new powers needed** |
+
+### Boundary check (OPEN-1 ownership)
+
+- `packages/search` does **not** retry; it only returns typed outcomes.
+- `packages/orchestration` owns retry (transient only) and whether to abort the slice when zero results remain.
+
+**Held up:** Existing CLOSED-1 split was sufficient for these modes.
+
+**Observation (not absorbed silently):** When *all* tasks end in no-results/hard-error/exhausted transient, the slice currently **throws** in Evidence Collection. That is a blunt “abort session” policy, not a productized recovery path (e.g. degrade, ask user, or widen sources). If founders want structured session-level failure outcomes (not exceptions), that is a **new** orchestration API shape — do not invent it inside `search`.
+
+**OPEN-2 / OPEN-3:** untouched this pass.
 
 ---
 

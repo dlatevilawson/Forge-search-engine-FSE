@@ -4,7 +4,10 @@
 
 **TypeScript type and interface definitions only** — no runtime logic.
 
-Includes the Verification → Reasoning handoff contract `EvidenceAttributes` (Principle 6).
+Includes:
+
+- Verification → Reasoning handoff contract `EvidenceAttributes`
+- Search → Orchestration handoff contracts `SearchResult` / `SearchOutcome`
 
 ## Does not own
 
