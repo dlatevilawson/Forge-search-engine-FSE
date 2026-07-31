@@ -46,6 +46,7 @@ export interface VerticalSliceResult {
 /**
  * Adapt SearchResult → EvidenceCandidate for the still-stubbed verification façade.
  * Lives in orchestration so packages/verification stays untouched this pass.
+ * Carries real publishedDate through as claimedPublicationDate (`null` when absent).
  */
 export function searchResultsToEvidenceCandidates(
   results: SearchResult[],
@@ -55,8 +56,7 @@ export function searchResultsToEvidenceCandidates(
     sourceUrl: result.url,
     sourceLabel: result.title,
     excerpt: result.snippet,
-    // SearchResult has no publication date — placeholder until a richer contract.
-    claimedPublicationDate: "unknown",
+    claimedPublicationDate: result.publishedDate,
   }));
 }
 

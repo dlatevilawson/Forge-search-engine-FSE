@@ -47,6 +47,12 @@ export interface SearchResult {
   snippet: string;
   /** Which retrieval backend produced this hit. Production web path emits `"exa"`. */
   provider: "exa" | "brave" | "duckduckgo";
+  /**
+   * Source publication date from the provider when known.
+   * ISO-8601 (or provider-native date string) when present; `null` when genuinely absent.
+   * Do not use placeholder strings like `"unknown"`.
+   */
+  publishedDate: string | null;
   retrievedAt: string;
 }
 
@@ -84,7 +90,11 @@ export interface EvidenceCandidate {
   sourceUrl: string;
   sourceLabel: string;
   excerpt: string;
-  claimedPublicationDate: string;
+  /**
+   * Claimed publication date from retrieval.
+   * Real provider value when known; `null` when absent — never a placeholder string.
+   */
+  claimedPublicationDate: string | null;
 }
 
 /**
@@ -96,7 +106,8 @@ export interface EvidenceAttributes {
   sourceUrl: string;
   /** 0–1 credibility embedded by Verification façade (internal scoring step). */
   sourceCredibility: number;
-  publicationDate: string;
+  /** From EvidenceCandidate; `null` when retrieval had no date. */
+  publicationDate: string | null;
   /** Stubbed 0–1 consistency check from Verification */
   factualConsistency: number;
   claimSupport: "supports" | "refutes" | "neutral";

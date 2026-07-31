@@ -22,6 +22,9 @@ console.log(`Real SearchResults (${result.searchResults.length}):`);
 for (const hit of result.searchResults) {
   console.log(`  • ${hit.title}`);
   console.log(`    ${hit.url}`);
+  console.log(
+    `    publishedDate: ${hit.publishedDate === null ? "null" : hit.publishedDate}`,
+  );
 }
 console.log("");
 console.log("Report (verification+ downstream still stubbed):");

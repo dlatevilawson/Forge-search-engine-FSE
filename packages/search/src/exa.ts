@@ -13,6 +13,7 @@ type ExaApiResult = {
   text?: string | null;
   highlights?: string[] | null;
   summary?: string | null;
+  publishedDate?: string | null;
 };
 
 type ExaApiResponse = {
@@ -121,6 +122,9 @@ export function mapExaResultsToSearchResults(
     if (!title) continue;
 
     const snippet = snippetFromExaHit(hit);
+    const rawDate = hit.publishedDate;
+    const publishedDate =
+      typeof rawDate === "string" && rawDate.trim() ? rawDate.trim() : null;
 
     results.push({
       id: hit.id?.trim() || `exa-${results.length + 1}`,
@@ -128,6 +132,7 @@ export function mapExaResultsToSearchResults(
       url,
       snippet,
       provider: "exa",
+      publishedDate,
       retrievedAt,
     });
   }

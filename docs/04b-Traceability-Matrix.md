@@ -103,6 +103,10 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 
 **Malformed-hit policy:** Drop individual Exa hits with missing title or URL; keep empty snippets as `""`; if none remain → `no-usable-results`.
 
+**Publication dates:** `SearchResult.publishedDate` is populated from Exa's real `publishedDate` when present, otherwise `null` (never a placeholder string). Orchestration carries this through to `EvidenceCandidate.claimedPublicationDate` / stub `EvidenceAttributes.publicationDate`.
+
+**Dedupe limitation (known):** Result deduplication is **exact-URL-match only**. Near-duplicate content under different URLs (e.g. a Wikipedia article and the same page with a provenance/`wprov` query string) will pass through as separate `SearchResult` hits. This is a deliberate simplification for now — revisit once Reasoning's consensus logic is real enough that near-duplicate sources would skew agreement counts. Do not treat rediscovery of this as a mystery bug.
+
 **Historical artifacts:** `pnpm audit-duckduckgo` and `pnpm audit-tavily-exa` retained; not on the production path.
 
 **OPEN-2 / OPEN-3:** untouched; remain OPEN.

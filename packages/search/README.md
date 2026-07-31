@@ -26,6 +26,8 @@ Returns typed [`SearchOutcome`](../types/src/index.ts) / `SearchResult[]`. Does 
 
 Exa can return HTTP 200 with individual results missing title (observed in sustained-burst audit). Those hits are **dropped**; empty snippets are kept as `""`. If nothing usable remains → `no-usable-results`.
 
+`publishedDate` is taken from Exa when present, otherwise `null` (never a placeholder string).
+
 ## Logical pipeline stage(s)
 
 - Evidence Collection
