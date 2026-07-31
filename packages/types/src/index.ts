@@ -45,8 +45,8 @@ export interface SearchResult {
   title: string;
   url: string;
   snippet: string;
-  /** Which retrieval backend produced this hit. */
-  provider: "duckduckgo" | "brave";
+  /** Which retrieval backend produced this hit. Production web path emits `"exa"`. */
+  provider: "exa" | "brave" | "duckduckgo";
   retrievedAt: string;
 }
 

@@ -101,10 +101,11 @@ Package scopes: [`packages/README.md`](./packages/README.md).
 Stage → runtime → package mapping: [`docs/04b-Traceability-Matrix.md`](./docs/04b-Traceability-Matrix.md).  
 Architectural principles (stable): [`docs/10-Architectural-Principles.md`](./docs/10-Architectural-Principles.md).
 
-Stub vertical slice with **real web retrieval** (downstream still stubbed):
+Stub vertical slice with **real Exa web retrieval** (downstream still stubbed):
 
 ```bash
 pnpm install
+export EXA_API_KEY=...   # required
 pnpm vertical-slice
 ```
 
@@ -116,10 +117,11 @@ SEARCH_FORCE_FAILURE=transient-error pnpm exercise-search-failures
 SEARCH_FORCE_FAILURE=hard-error pnpm exercise-search-failures
 ```
 
-DuckDuckGo scrape reliability audit:
+Historical provider audits (not production path):
 
 ```bash
-pnpm audit-duckduckgo
+pnpm audit-duckduckgo      # methodology artifact; now hits Exa via searchWeb()
+pnpm audit-tavily-exa      # direct API bake-off / sustained-burst harness
 ```
 
 ---

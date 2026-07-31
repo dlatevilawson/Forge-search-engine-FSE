@@ -1,7 +1,7 @@
 # Traceability Matrix
 
 **Document:** `04b-Traceability-Matrix.md`  
-**Version:** `v0.5`  
+**Version:** `v0.6`  
 **Architecture Type:** Product Architecture + Runtime Architecture + System Architecture (cross-cutting)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -22,7 +22,7 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ## Status
 
-**Versioned — v0.5** — Four search outcomes including `no-usable-results` (no throw); DuckDuckGo scrape audit recorded. OPEN-2 and OPEN-3 remain open.
+**Versioned — v0.6** — Production web retrieval is Exa (`searchWeb()`). DuckDuckGo scrape retired; four-outcome model retained. OPEN-2 and OPEN-3 remain open.
 
 ## Table of Contents
 
@@ -63,21 +63,23 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 
 **Pass (2026-07-30, follow-up):** Four typed outcomes are now consistent — `success` | `no-usable-results` | `transient-error` | `hard-error`. Empty retrieval is **data**, not a thrown exception. Orchestration pattern-matches via `collectionOutcome`; founder policy for what to do next (broaden query, clarify, fail session, etc.) is deferred.
 
+**Pass (2026-07-31):** Production provider swapped to **Exa**. DuckDuckGo HTML scrape removed from `packages/search`. Same `SearchResult` / `SearchOutcome` contracts; `provider` union extended with `"exa"`. Requires `EXA_API_KEY`.
+
 ### Outcome model
 
 | Outcome | Meaning | Retryable? |
 |---|---|---|
 | `success` | Usable `SearchResult[]` returned | — |
-| `no-usable-results` | Query ran; zero usable hits (legitimate) | No |
-| `transient-error` | Timeout, 429/5xx/202 bot interstitial, truncated body | Yes (orchestration) |
-| `hard-error` | Empty query, non-retryable HTTP, unimplemented source kind | No |
+| `no-usable-results` | Query ran; zero usable hits after dropping malformed individual results | No |
+| `transient-error` | Timeout, network blip, 429/5xx, unreadable 200 body | Yes (orchestration) |
+| `hard-error` | Empty query, missing `EXA_API_KEY`, 401/403/402/400, unimplemented source kind | No |
 
 ### Failure modes exercised
 
 | Mode | How | Orchestration behavior |
 |---|---|---|
-| **success** | Hardcoded boiling-point query against DuckDuckGo HTML (GET) | Collected real hits; adapted to `EvidenceCandidate` for stub verification |
-| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error`; live HTTP 202 bot interstitial | Retried up to `maxAttempts` (3) — **no new powers needed** |
+| **success** | Hardcoded boiling-point query against **Exa** | Collected real hits; adapted to `EvidenceCandidate` for stub verification |
+| **transient-error** | `SEARCH_FORCE_FAILURE=transient-error` | Retried up to `maxAttempts` (3) — **no new powers needed** |
 | **no-usable-results** | `SEARCH_FORCE_FAILURE=no-usable-results` | Single attempt; slice completes with `collectionOutcome=no-usable-results`, **does not throw** |
 | **hard-error** | `SEARCH_FORCE_FAILURE=hard-error` | Single attempt; **not** retried — **no new powers needed** |
 
@@ -86,13 +88,22 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 - `packages/search` does **not** retry; it only returns typed outcomes.
 - `packages/orchestration` owns retry (transient only) and records `collectionOutcome` for non-success paths without inventing product policy.
 
-### DuckDuckGo provider audit (2026-07-30)
+### Provider Decision (2026-07-31)
 
-**Integration type:** HTML scrape of `html.duckduckgo.com` — **not** an official DuckDuckGo API.
+| Candidate | What was measured | Result |
+|---|---|---|
+| **DuckDuckGo** (HTML scrape) | 15 queries @ ~400ms | ~40% success; failures clustered after ~6 requests (bot/202). **Unsuitable for production.** |
+| **Exa vs Tavily** | 8 identical queries, LLM-judged quality + latency/cost | Exa won 6/8 quality, ~37% lower median latency, ~$0.007 vs ~$0.008/search; stronger on evidence-critical queries with dates. Tavily returned zero `published_date` in that test. |
+| **Exa sustained burst** | Same 15×~400ms DuckDuckGo methodology | 14/15 success, **0** rate-limits, no session collapse. One miss = empty titles on some hits (HTTP 200) — data-shape, not reliability. |
+| **Tavily sustained burst** | Same methodology | 15/15 success — reliable, but not chosen as default given comparison gaps above. |
 
-**Repeated-query test (15 real queries, ~400ms spacing):** 6 success, 9 HTTP 202 bot/transient (40% success). After the first handful of successes, subsequent requests consistently hit 202 interstitials. Zero hard-errors / zero genuine no-usable-results in this sample.
+**Chosen default:** **Exa** behind `searchWeb()`.
 
-**Recommendation:** **Do not keep building production retrieval on this scrape.** Swap to a stable search API (Brave / Tavily / Exa / Bing) before more packages depend on retrieval. Swap scope is small: replace the DuckDuckGo fetch/parse behind `searchWeb()` while keeping `SearchResult` / `SearchOutcome` contracts. **No swap performed this pass** — founder decision.
+**Why (one line):** Exa combines production-grade sustained-load reliability (unlike DuckDuckGo) with better evidence-critical quality, latency, and citation/date usefulness than Tavily in the controlled bake-off.
+
+**Malformed-hit policy:** Drop individual Exa hits with missing title or URL; keep empty snippets as `""`; if none remain → `no-usable-results`.
+
+**Historical artifacts:** `pnpm audit-duckduckgo` and `pnpm audit-tavily-exa` retained; not on the production path.
 
 **OPEN-2 / OPEN-3:** untouched; remain OPEN.
 
