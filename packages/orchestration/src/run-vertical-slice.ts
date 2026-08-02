@@ -9,10 +9,12 @@ import {
 import { generateReport } from "@repo/reporting";
 import { retrieveForSourceKind } from "@repo/search";
 import type {
+  EvidenceAttributes,
   EvidenceCandidate,
   ExecutionPlan,
   SearchOutcome,
   SearchResult,
+  VerificationOutcome,
 } from "@repo/types";
 import { verifyEvidence } from "@repo/verification";
 
@@ -41,11 +43,16 @@ export interface VerticalSliceResult {
    * this field exists so orchestration can pattern-match without throwing.
    */
   collectionOutcome: SearchOutcome["status"];
+  /** Typed verification outcome — orchestration records; does not retry inside verification. */
+  verificationOutcome: VerificationOutcome["status"];
+  verificationDetail?: string;
+  evidenceAttributes: EvidenceAttributes[];
 }
 
 /**
  * Adapt SearchResult → EvidenceCandidate for the still-stubbed verification façade.
  * Lives in orchestration so packages/verification stays untouched this pass.
+ * Carries real publishedDate through as claimedPublicationDate (`null` when absent).
  */
 export function searchResultsToEvidenceCandidates(
   results: SearchResult[],
@@ -55,8 +62,7 @@ export function searchResultsToEvidenceCandidates(
     sourceUrl: result.url,
     sourceLabel: result.title,
     excerpt: result.snippet,
-    // SearchResult has no publication date — placeholder until a richer contract.
-    claimedPublicationDate: "unknown",
+    claimedPublicationDate: result.publishedDate,
   }));
 }
 
@@ -166,11 +172,22 @@ export async function runVerticalSlice(
     collected.length,
   );
 
-  // Minimal adapter — verification package untouched. Empty candidates are valid
-  // when collectionOutcome is non-success (placeholder path; not a product policy).
+  // Minimal adapter. Empty candidates are valid when collectionOutcome is non-success.
   const candidates = searchResultsToEvidenceCandidates(collected);
-  const attributes = verifyEvidence(candidates);
+  const verification = await verifyEvidence(candidates, {
+    query: intent.clarifiedQuestion,
+  });
   stages.push("5 Evidence Verification");
+
+  const attributes: EvidenceAttributes[] =
+    verification.status === "success"
+      ? verification.attributes
+      : verification.status === "transient-error" &&
+          verification.partialAttributes
+        ? verification.partialAttributes
+        : [];
+  // Non-success verification: record typed outcome; do not throw. Retry policy deferred
+  // to founder (orchestration may later retry transient verification failures).
 
   const consensus = analyzeConsensus(attributes);
   stages.push("6 Consensus Analysis");
@@ -201,5 +218,9 @@ export async function runVerticalSlice(
     searchResults: collected,
     retrievalLog,
     collectionOutcome,
+    verificationOutcome: verification.status,
+    verificationDetail:
+      verification.status === "success" ? undefined : verification.detail,
+    evidenceAttributes: attributes,
   };
 }

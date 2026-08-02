@@ -1,5 +1,5 @@
 import type { SearchOutcome, SearchResult } from "@repo/types";
-import { fetchDuckDuckGoHtml, parseDuckDuckGoHtml } from "./duckduckgo.ts";
+import { fetchExaSearch, mapExaResultsToSearchResults } from "./exa.ts";
 
 export type SearchWebOptions = {
   limit?: number;
@@ -21,12 +21,19 @@ function forceFailureFromEnv(): SearchWebOptions["forceFailure"] {
   return undefined;
 }
 
+function isTransientNetworkMessage(message: string, name?: string): boolean {
+  if (name === "AbortError") return true;
+  return /timeout|network|fetch failed|econnreset|enotfound|aborted/i.test(
+    message,
+  );
+}
+
 /**
- * Real web-only retrieval.
+ * Real web-only retrieval via Exa Search API.
  * Returns typed SearchOutcome — does not retry. Orchestration owns retry/recovery.
  *
- * Provider: DuckDuckGo HTML scrape (not an official API). Optional BRAVE_API_KEY
- * reserved for a future backend swap; not required for this path.
+ * Requires EXA_API_KEY. DuckDuckGo HTML scrape has been retired from this path
+ * (see docs/04b provider decision; audit scripts retained as historical evidence).
  */
 export async function searchWeb(
   query: string,
@@ -70,89 +77,93 @@ export async function searchWeb(
     };
   }
 
-  try {
-    const response = await fetchDuckDuckGoHtml(trimmed, {
-      limit,
-      timeoutMs,
-      signal: options.signal,
-    });
-
-    if (response.status === 429 || response.status === 202 || response.status >= 500) {
-      return {
-        status: "transient-error",
-        query: trimmed,
-        detail: `Upstream HTTP ${response.status}`,
-        retryable: true,
-      };
-    }
-
-    if (!response.ok) {
-      return {
-        status: "hard-error",
-        query: trimmed,
-        detail: `Upstream HTTP ${response.status}`,
-        retryable: false,
-      };
-    }
-
-    const html = await response.text();
-    if (!html || html.length < 50) {
-      return {
-        status: "transient-error",
-        query: trimmed,
-        detail: "Empty or truncated upstream body",
-        retryable: true,
-      };
-    }
-
-    // Bot interstitial pages often return 200 with no result blocks.
-    if (!/class="result__a"/i.test(html) && /duckduckgo/i.test(html)) {
-      const looksLikeInterstitial =
-        /anomaly|challenge|captcha|bot|unusual traffic/i.test(html) ||
-        html.length < 20_000;
-      if (looksLikeInterstitial && !/class="results"/i.test(html)) {
-        return {
-          status: "transient-error",
-          query: trimmed,
-          detail: "Upstream HTML lacked result blocks (possible bot interstitial)",
-          retryable: true,
-        };
-      }
-    }
-
-    const results: SearchResult[] = parseDuckDuckGoHtml(html, limit);
-    if (results.length === 0) {
-      return {
-        status: "no-usable-results",
-        query: trimmed,
-        detail: "Parser found zero usable result blocks",
-      };
-    }
-
-    return { status: "success", query: trimmed, results };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    const transient =
-      error instanceof Error &&
-      (error.name === "AbortError" ||
-        /timeout|network|fetch failed|econnreset|enotfound/i.test(message));
-
-    if (transient) {
-      return {
-        status: "transient-error",
-        query: trimmed,
-        detail: message,
-        retryable: true,
-      };
-    }
-
+  const apiKey = process.env.EXA_API_KEY?.trim();
+  if (!apiKey) {
     return {
       status: "hard-error",
       query: trimmed,
-      detail: message,
+      detail: "EXA_API_KEY is not set",
       retryable: false,
     };
   }
+
+  const fetched = await fetchExaSearch(apiKey, trimmed, {
+    limit,
+    timeoutMs,
+    signal: options.signal,
+  });
+
+  if (fetched.kind === "network") {
+    if (isTransientNetworkMessage(fetched.message)) {
+      return {
+        status: "transient-error",
+        query: trimmed,
+        detail: fetched.message,
+        retryable: true,
+      };
+    }
+    return {
+      status: "hard-error",
+      query: trimmed,
+      detail: fetched.message,
+      retryable: false,
+    };
+  }
+
+  const { status, bodyText } = fetched;
+
+  // Transient upstream conditions — orchestration may retry.
+  if (status === 429 || status === 408 || status >= 500) {
+    return {
+      status: "transient-error",
+      query: trimmed,
+      detail: `Upstream HTTP ${status}`,
+      retryable: true,
+    };
+  }
+
+  // Auth / billing / client errors — not retryable without config change.
+  if (status === 401 || status === 403 || status === 402 || status === 400) {
+    return {
+      status: "hard-error",
+      query: trimmed,
+      detail: `Upstream HTTP ${status}${bodyText ? `: ${bodyText.slice(0, 200)}` : ""}`,
+      retryable: false,
+    };
+  }
+
+  if (status !== 200) {
+    return {
+      status: "hard-error",
+      query: trimmed,
+      detail: `Upstream HTTP ${status}`,
+      retryable: false,
+    };
+  }
+
+  const mapped = mapExaResultsToSearchResults(bodyText, limit);
+
+  if (mapped.parseError) {
+    // 200 with unreadable body — treat as transient (may be truncated/proxy glitch).
+    return {
+      status: "transient-error",
+      query: trimmed,
+      detail: mapped.parseError,
+      retryable: true,
+    };
+  }
+
+  const results: SearchResult[] = mapped.results;
+  if (results.length === 0) {
+    return {
+      status: "no-usable-results",
+      query: trimmed,
+      detail:
+        "Exa returned zero usable hits after dropping results with missing title or URL",
+    };
+  }
+
+  return { status: "success", query: trimmed, results };
 }
 
 /**

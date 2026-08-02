@@ -4,7 +4,7 @@
 
 **Retrieval only** — fetching information from external sources.
 
-- **Web retrieval (implemented)** — DuckDuckGo HTML by default (no API key)
+- **Web retrieval (implemented)** — Exa Search API (`EXA_API_KEY` required)
 - YouTube / docs / papers — **not implemented** this pass (return typed `hard-error`)
 
 Returns typed [`SearchOutcome`](../types/src/index.ts) / `SearchResult[]`. Does **not** retry.
@@ -19,8 +19,14 @@ Returns typed [`SearchOutcome`](../types/src/index.ts) / `SearchResult[]`. Does 
 
 | Variable | Purpose |
 |---|---|
+| `EXA_API_KEY` | **Required** for production web retrieval (Exa) |
 | `SEARCH_FORCE_FAILURE` | `no-usable-results` \| `transient-error` \| `hard-error` — force typed outcomes for orchestration tests |
-| `BRAVE_API_KEY` | Reserved for optional Brave backend later; **not required** for DuckDuckGo path |
+
+## Malformed-hit policy
+
+Exa can return HTTP 200 with individual results missing title (observed in sustained-burst audit). Those hits are **dropped**; empty snippets are kept as `""`. If nothing usable remains → `no-usable-results`.
+
+`publishedDate` is taken from Exa when present, otherwise `null` (never a placeholder string).
 
 ## Logical pipeline stage(s)
 
@@ -28,4 +34,4 @@ Returns typed [`SearchOutcome`](../types/src/index.ts) / `SearchResult[]`. Does 
 
 ## Status
 
-Web retrieval is real. Other source kinds remain unimplemented.
+Web retrieval is real (Exa). DuckDuckGo HTML scrape retired from this package. Other source kinds remain unimplemented.

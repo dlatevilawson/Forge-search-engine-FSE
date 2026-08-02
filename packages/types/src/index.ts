@@ -45,8 +45,14 @@ export interface SearchResult {
   title: string;
   url: string;
   snippet: string;
-  /** Which retrieval backend produced this hit. */
-  provider: "duckduckgo" | "brave";
+  /** Which retrieval backend produced this hit. Production web path emits `"exa"`. */
+  provider: "exa" | "brave" | "duckduckgo";
+  /**
+   * Source publication date from the provider when known.
+   * ISO-8601 (or provider-native date string) when present; `null` when genuinely absent.
+   * Do not use placeholder strings like `"unknown"`.
+   */
+  publishedDate: string | null;
   retrievedAt: string;
 }
 
@@ -84,24 +90,60 @@ export interface EvidenceCandidate {
   sourceUrl: string;
   sourceLabel: string;
   excerpt: string;
-  claimedPublicationDate: string;
+  /**
+   * Claimed publication date from retrieval.
+   * Real provider value when known; `null` when absent — never a placeholder string.
+   */
+  claimedPublicationDate: string | null;
 }
 
 /**
  * Evidence attributes — Verification → Reasoning handoff contract (Principle 6).
  * Reasoning must consume this shape; it must not invent a parallel ad hoc structure.
+ *
+ * Credibility score and claim-consistency are kept as **distinct** fields so consumers
+ * can weight "credible but off-topic" differently from "on-topic but weak source"
+ * (relevant to OPEN-2 — do not collapse them inside Verification).
  */
 export interface EvidenceAttributes {
   evidenceId: string;
   sourceUrl: string;
-  /** 0–1 credibility embedded by Verification façade (internal scoring step). */
+  /** 0–1 source credibility from Verification's private scoring step. */
   sourceCredibility: number;
-  publicationDate: string;
-  /** Stubbed 0–1 consistency check from Verification */
+  /** Human-readable explanation of which signals drove sourceCredibility. */
+  credibilityRationale: string;
+  /** From EvidenceCandidate; `null` when retrieval had no date. */
+  publicationDate: string | null;
+  /**
+   * 0–1 how well this candidate's content relates to / addresses the research query
+   * (claim-consistency). Not a general truth score.
+   */
   factualConsistency: number;
+  /** Stance relative to the query when related; off-topic maps to neutral + low consistency. */
   claimSupport: "supports" | "refutes" | "neutral";
+  /** Human-readable explanation of the consistency verdict. */
+  consistencyRationale: string;
   verifiedAt: string;
 }
+
+/**
+ * Typed verification outcomes — packages/verification surfaces these;
+ * packages/orchestration decides retry/recovery (Verification must not retry LLM calls).
+ */
+export type VerificationOutcome =
+  | { status: "success"; attributes: EvidenceAttributes[] }
+  | {
+      status: "transient-error";
+      detail: string;
+      retryable: true;
+      /** Credibility may have completed; consistency step failed transiently. */
+      partialAttributes?: EvidenceAttributes[];
+    }
+  | {
+      status: "hard-error";
+      detail: string;
+      retryable: false;
+    };
 
 export interface ConsensusResult {
   summary: string;
