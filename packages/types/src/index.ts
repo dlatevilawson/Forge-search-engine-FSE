@@ -100,19 +100,50 @@ export interface EvidenceCandidate {
 /**
  * Evidence attributes — Verification → Reasoning handoff contract (Principle 6).
  * Reasoning must consume this shape; it must not invent a parallel ad hoc structure.
+ *
+ * Credibility score and claim-consistency are kept as **distinct** fields so consumers
+ * can weight "credible but off-topic" differently from "on-topic but weak source"
+ * (relevant to OPEN-2 — do not collapse them inside Verification).
  */
 export interface EvidenceAttributes {
   evidenceId: string;
   sourceUrl: string;
-  /** 0–1 credibility embedded by Verification façade (internal scoring step). */
+  /** 0–1 source credibility from Verification's private scoring step. */
   sourceCredibility: number;
+  /** Human-readable explanation of which signals drove sourceCredibility. */
+  credibilityRationale: string;
   /** From EvidenceCandidate; `null` when retrieval had no date. */
   publicationDate: string | null;
-  /** Stubbed 0–1 consistency check from Verification */
+  /**
+   * 0–1 how well this candidate's content relates to / addresses the research query
+   * (claim-consistency). Not a general truth score.
+   */
   factualConsistency: number;
+  /** Stance relative to the query when related; off-topic maps to neutral + low consistency. */
   claimSupport: "supports" | "refutes" | "neutral";
+  /** Human-readable explanation of the consistency verdict. */
+  consistencyRationale: string;
   verifiedAt: string;
 }
+
+/**
+ * Typed verification outcomes — packages/verification surfaces these;
+ * packages/orchestration decides retry/recovery (Verification must not retry LLM calls).
+ */
+export type VerificationOutcome =
+  | { status: "success"; attributes: EvidenceAttributes[] }
+  | {
+      status: "transient-error";
+      detail: string;
+      retryable: true;
+      /** Credibility may have completed; consistency step failed transiently. */
+      partialAttributes?: EvidenceAttributes[];
+    }
+  | {
+      status: "hard-error";
+      detail: string;
+      retryable: false;
+    };
 
 export interface ConsensusResult {
   summary: string;

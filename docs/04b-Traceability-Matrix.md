@@ -1,7 +1,7 @@
 # Traceability Matrix
 
 **Document:** `04b-Traceability-Matrix.md`  
-**Version:** `v0.6`  
+**Version:** `v0.7`  
 **Architecture Type:** Product Architecture + Runtime Architecture + System Architecture (cross-cutting)  
 **Authority:** Subordinate to Master Vision → Founder Brief → Constitution
 
@@ -22,7 +22,7 @@ Architects and founding engineers reviewing changes to pipeline, runtime, or pac
 
 ## Status
 
-**Versioned — v0.6** — Production web retrieval is Exa (`searchWeb()`). DuckDuckGo scrape retired; four-outcome model retained. OPEN-2 and OPEN-3 remain open.
+**Versioned — v0.7** — Real first-pass verification (credibility + LLM consistency) behind `verifyEvidence()`. OPEN-2 and OPEN-3 remain open.
 
 ## Table of Contents
 
@@ -179,6 +179,8 @@ Logical stages from [`04-Research-Pipeline.md`](./04-Research-Pipeline.md). Runt
 - C. Allow a narrow shared module inside `reasoning` that verification may not import (directional dependency)
 
 **Experiment (not a decision):** Verification façade — orchestration calls only `verifyEvidence()`; `scoreCredibility` is private inside verification. Reasoning uses `EvidenceAttributes` only. See latest pass notes; **OPEN-2 stays OPEN**.
+
+**Observation (2026-07-31, real verification pass — evidence only, not a decision):** `verifyEvidence()` now runs two genuinely different internal steps (deterministic credibility + LLM claim-consistency). `EvidenceAttributes` keeps `sourceCredibility` / `credibilityRationale` **distinct** from `factualConsistency` / `claimSupport` / `consistencyRationale` — they are not collapsed inside Verification. Today's Reasoning stub (`weightEvidence`) *does* combine credibility and consistency into a single weight (`0.6/0.4`). That suggests Confidence Assessment may later want the raw pair separately (e.g. weight "high credibility, low consistency" differently from the reverse). Whether that means Reasoning must keep consuming only `EvidenceAttributes` (option A still works if both fields stay on the contract) vs needing a separate scoring export is still undecided. **OPEN-2 remains OPEN.**
 
 **Founder input required before closing.**
 
